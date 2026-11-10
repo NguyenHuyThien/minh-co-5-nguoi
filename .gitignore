@@ -1,2 +1,53 @@
-*.txt
-*.docx
+# ==============================
+# NODE.JS
+# ==============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ==============================
+# ENVIRONMENT VARIABLES
+# ==============================
+.env
+.env.*
+!.env.example
+
+# ==============================
+# SECRET FILES
+# ==============================
+service-account.json
+service-account-*.json
+*.pem
+*.key
+
+# ==============================
+# LOGS
+# ==============================
+logs/
+*.log
+
+# ==============================
+# BUILD OUTPUT
+# ==============================
+dist/
+coverage/
+
+# ==============================
+# ANDROID / GRADLE
+# ==============================
+.gradle/
+**/build/
+local.properties
+*.jks
+*.keystore
+
+# ==============================
+# FLUTTER
+# ==============================
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
