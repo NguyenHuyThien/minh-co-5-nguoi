@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../models/market.dart';
 import '../validators/auth_validators.dart';
+import 'market_selection_page.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -15,12 +17,30 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _hidePassword = true;
+  Market? _demoMarket;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _openMarketDemo() async {
+    FocusScope.of(context).unfocus();
+    final market = await Navigator.push<Market>(
+      context,
+      MaterialPageRoute<Market>(
+        builder: (context) => const MarketSelectionPage(),
+      ),
+    );
+    if (!mounted || market == null) return;
+    setState(() => _demoMarket = market);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text('Đã chọn chợ mẫu: ${market.name}')),
+      );
   }
 
   void _submit() {
@@ -121,6 +141,28 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       child: const Text('Chưa có tài khoản? Đăng ký'),
                     ),
+                    const SizedBox(height: 24),
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      key: const ValueKey('open_market_demo'),
+                      onPressed: _openMarketDemo,
+                      icon: const Icon(Icons.storefront_outlined),
+                      label: const Text('Demo chọn chợ · Dữ liệu mẫu'),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Chỉ xem giao diện chọn chợ; không đăng nhập và không đặt hàng.',
+                      textAlign: TextAlign.center,
+                    ),
+                    if (_demoMarket != null) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        'Chợ mẫu đã chọn: ${_demoMarket!.name}',
+                        key: const ValueKey('selected_demo_market'),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     const Text(
                       'Đăng nhập tài khoản khách hàng. Chức năng đang chờ kết nối Backend.',
