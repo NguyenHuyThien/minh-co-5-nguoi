@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/market.dart';
 import '../validators/auth_validators.dart';
+import 'market_area_page.dart';
 import 'market_selection_page.dart';
 import 'register_page.dart';
 
@@ -161,6 +162,22 @@ class _LoginPageState extends State<LoginPage> {
                         'Chợ mẫu đã chọn: ${_demoMarket!.name}',
                         key: const ValueKey('selected_demo_market'),
                         textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        key: const ValueKey('open_market_directory_demo'),
+                        onPressed: () {
+                          FocusScope.of(context).unfocus();
+                          Navigator.push<void>(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (context) =>
+                                  MarketAreaPage(market: _demoMarket!),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.category_outlined),
+                        label: const Text('Demo xem khu vực và gian hàng'),
                       ),
                     ],
                     const SizedBox(height: 16),
