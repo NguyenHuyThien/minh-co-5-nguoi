@@ -310,7 +310,12 @@ void main() {
     expect(find.text('Hết hàng (mẫu)'), findsOneWidget);
     expect(find.text('Chưa có ảnh sản phẩm'), findsOneWidget);
     expect(find.byType(Image), findsNothing);
-    expect(find.text('Thêm vào giỏ'), findsNothing);
+    expect(
+      tester
+          .widget<FilledButton>(find.byKey(const ValueKey('add_to_cart')))
+          .onPressed,
+      isNull,
+    );
   });
 
   testWidgets('Chặn gian hàng và chi tiết sản phẩm thuộc chợ khác', (
