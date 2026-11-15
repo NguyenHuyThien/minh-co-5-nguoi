@@ -6,6 +6,7 @@ import '../services/mock_market_directory_service.dart';
 import '../services/mock_market_service.dart';
 import '../widgets/demo_list_widgets.dart';
 import 'stall_list_page.dart';
+import 'product_list_page.dart';
 
 class MarketAreaPage extends StatefulWidget {
   const MarketAreaPage({super.key, required this.market, this.service});
@@ -53,7 +54,22 @@ class _MarketAreaPageState extends State<MarketAreaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Khu vực · Demo')),
+      appBar: AppBar(
+        title: const Text('Khu vực · Demo'),
+        actions: [
+          IconButton(
+            key: const ValueKey('open_market_product_search'),
+            tooltip: 'Tìm sản phẩm trong chợ',
+            onPressed: () => Navigator.push<void>(
+              context,
+              MaterialPageRoute<void>(
+                builder: (context) => ProductListPage(market: widget.market),
+              ),
+            ),
+            icon: const Icon(Icons.search),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(

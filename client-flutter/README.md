@@ -4,7 +4,7 @@
 
 **Thành viên phụ trách:** Trịnh Thanh Toàn – MSSV **221A010953**.
 
-Flutter Client phục vụ khách hàng chọn chợ, mua hàng và theo dõi đơn đi chợ hộ. Phiên bản hiện tại triển khai giao diện tài khoản và luồng chọn chợ → khu vực → gian hàng bằng dữ liệu mẫu. Xem [README chung của nhóm](../README.md) để biết phân công toàn hệ thống.
+Flutter Client phục vụ khách hàng chọn chợ, mua hàng và theo dõi đơn đi chợ hộ. Phiên bản hiện tại triển khai giao diện tài khoản và luồng chọn chợ → khu vực → gian hàng → sản phẩm → chi tiết bằng dữ liệu mẫu. Xem [README chung của nhóm](../README.md) để biết phân công toàn hệ thống.
 
 ## Công nghệ và môi trường
 
@@ -31,11 +31,11 @@ Project hiện giữ các dependency của template Flutter: `cupertino_icons`, 
 | Gửi form tài khoản hợp lệ | Đã có phản hồi giao diện | Chỉ thông báo đang chờ kết nối Backend |
 | Điều hướng tài khoản | Đã triển khai | Mở đăng ký và quay lại đăng nhập bằng Navigator |
 | Chọn chợ | Đã triển khai **demo với Mock Data** | Danh sách chợ mẫu, chọn và trả kết quả về màn hình trước |
-| Loading, dữ liệu, rỗng, lỗi và thử lại | Đã triển khai cho chợ, khu vực và gian hàng mẫu | Chuyển kịch bản bằng bộ chọn trên từng màn hình demo |
+| Loading, dữ liệu, rỗng, lỗi và thử lại | Đã triển khai cho chợ, khu vực, gian hàng và sản phẩm mẫu | Chuyển kịch bản bằng bộ chọn trên từng màn hình demo |
 | Xác thực thật và lưu token | Chưa triển khai | Chưa gọi API, chưa có JWT hoặc SharedPreferences |
 | Chọn chợ gần nhất theo vị trí | Dự kiến | Chưa lấy vị trí, tính khoảng cách hoặc sắp theo khoảng cách |
 | Khu vực và gian hàng | Đã triển khai demo bằng Mock Data | Xem khu vực theo chợ, gian hàng theo khu vực; lọc đúng ID chợ và khu vực, chưa gọi API thật |
-| Tìm kiếm và chi tiết sản phẩm | Dự kiến | Chưa có màn hình hoặc logic |
+| Tìm kiếm và chi tiết sản phẩm | Đã triển khai demo bằng Mock Data | Danh sách theo gian hàng; tìm tên trong gian hàng hoặc toàn chợ; chi tiết, giá và tồn hàng đều là mẫu |
 | Giỏ hàng nhiều gian hàng trong cùng chợ | Dự kiến | Bao gồm số lượng và ghi chú từng dòng hàng |
 | Chọn khung giờ, xem phí và đặt đơn | Dự kiến | Cần thống nhất nghiệp vụ và API |
 | Theo dõi đơn hàng | Dự kiến | Chưa kết nối dữ liệu đơn |
@@ -51,6 +51,13 @@ Project hiện giữ các dependency của template Flutter: `cupertino_icons`, 
 - Chợ đã chọn chỉ được giữ tạm trong trạng thái màn hình đăng nhập; chưa lưu bền vững hoặc tạo đơn.
 - Sau khi chọn chợ, nút **“Demo xem khu vực và gian hàng”** mở luồng **chợ đã chọn → danh sách khu vực → danh sách gian hàng**. Chợ và khu vực được truyền qua Navigator.
 - [MockMarketDirectoryService](lib/services/mock_market_directory_service.dart) cung cấp khu vực, gian hàng và vị trí sạp minh họa. Service và màn hình lọc theo ID để không hiển thị gian hàng sai chợ hoặc khu vực; đây chưa phải dữ liệu từ Backend API.
+
+### Sản phẩm và giá mẫu
+
+- [MockProductService](lib/services/mock_product_service.dart) cung cấp sản phẩm theo gian hàng; kiểm tra ID chợ và gian hàng. Màn hình tiếp tục lọc ID để không hiển thị sản phẩm của chợ khác.
+- Mỗi gian hàng có 3 sản phẩm mẫu. Giá là số đồng nguyên, hiển thị dạng **“Giá mẫu: 18.000 ₫ / kg”**; tên, giá và tình trạng còn/hết hàng đều chỉ để thử giao diện, không phải dữ liệu thực tế từ chợ.
+- Tìm theo tên bằng dữ liệu đã tải, không phân biệt chữ hoa/thường và bỏ khoảng trắng đầu/cuối; dấu tiếng Việt vẫn được giữ khi so khớp. Chưa tìm kiếm qua Backend API.
+- Ảnh dùng biểu tượng placeholder; chưa tải ảnh URL. Chi tiết chỉ hiển thị thông tin, chưa có thêm giỏ hàng hoặc đặt đơn.
 
 ### Kiểm tra dữ liệu tài khoản
 
@@ -78,16 +85,22 @@ client-flutter/
 │   ├── models/
 │   │   ├── market.dart
 │   │   ├── market_area.dart
-│   │   └── stall.dart
+│   │   ├── stall.dart
+│   │   └── product.dart
 │   ├── screens/
 │   │   ├── login_page.dart
 │   │   ├── register_page.dart
 │   │   ├── market_selection_page.dart
 │   │   ├── market_area_page.dart
-│   │   └── stall_list_page.dart
+│   │   ├── stall_list_page.dart
+│   │   ├── product_list_page.dart
+│   │   └── product_detail_page.dart
 │   ├── services/
 │   │   ├── mock_market_service.dart
-│   │   └── mock_market_directory_service.dart
+│   │   ├── mock_market_directory_service.dart
+│   │   └── mock_product_service.dart
+│   ├── utils/
+│   │   └── currency_formatter.dart
 │   ├── validators/
 │   │   └── auth_validators.dart
 │   └── widgets/
@@ -95,7 +108,8 @@ client-flutter/
 ├── test/
 │   ├── widget_test.dart
 │   ├── market_selection_test.dart
-│   └── market_directory_test.dart
+│   ├── market_directory_test.dart
+│   └── product_test.dart
 ├── analysis_options.yaml
 ├── pubspec.yaml
 ├── pubspec.lock
@@ -105,12 +119,15 @@ client-flutter/
 - [main.dart](lib/main.dart): điểm khởi chạy, theme xanh Material 3 và màn hình đăng nhập.
 - [models/market.dart](lib/models/market.dart): model chợ bất biến gồm ID, tên và địa chỉ.
 - [models/market_area.dart](lib/models/market_area.dart) và [models/stall.dart](lib/models/stall.dart): model khu vực và gian hàng, có ID liên kết chợ/khu vực.
-- [screens/](lib/screens/): giao diện tài khoản, chọn chợ, danh sách khu vực và gian hàng.
+- [models/product.dart](lib/models/product.dart): sản phẩm gắn ID chợ/gian hàng, tên, giá mẫu, đơn vị, mô tả và còn hàng.
+- [screens/](lib/screens/): giao diện tài khoản, chọn chợ, khu vực/gian hàng, danh sách/tìm kiếm và chi tiết sản phẩm.
 - [services/mock_market_service.dart](lib/services/mock_market_service.dart): cung cấp dữ liệu mẫu, độ trễ và lỗi mô phỏng, tách khỏi Widget.
 - [services/mock_market_directory_service.dart](lib/services/mock_market_directory_service.dart): dữ liệu khu vực/gian hàng theo ID chợ và khu vực, có mô phỏng rỗng và lỗi.
+- [services/mock_product_service.dart](lib/services/mock_product_service.dart): sản phẩm mẫu theo chợ/gian hàng và kịch bản loading/rỗng/lỗi.
+- [utils/currency_formatter.dart](lib/utils/currency_formatter.dart): định dạng tiền Việt Nam, không cần package ngoài.
 - [widgets/demo_list_widgets.dart](lib/widgets/demo_list_widgets.dart): bộ chọn kịch bản mẫu và thông báo rỗng/lỗi/thử lại dùng chung.
 - [validators/auth_validators.dart](lib/validators/auth_validators.dart): quy tắc kiểm tra dùng chung.
-- [test/](test/): kiểm thử validator, form, điều hướng và các trạng thái danh sách chợ, khu vực, gian hàng.
+- [test/](test/): kiểm thử validator, form, điều hướng và các trạng thái danh sách chợ, khu vực, gian hàng và sản phẩm.
 
 ## Chạy ứng dụng
 
@@ -138,7 +155,7 @@ flutter run -d emulator-5554
 
 Dùng ID thực tế từ `flutter devices` nếu khác ví dụ. Project hiện chỉ khởi tạo Android; hướng dẫn này dành cho thiết bị Android.
 
-### Trải nghiệm chọn chợ, khu vực và gian hàng mẫu
+### Trải nghiệm chọn chợ, khu vực, gian hàng và sản phẩm mẫu
 
 1. Mở ứng dụng tại màn hình đăng nhập.
 2. Bấm **“Demo chọn chợ · Dữ liệu mẫu”**; không cần gửi form đăng nhập.
@@ -148,9 +165,12 @@ Dùng ID thực tế từ `flutter devices` nếu khác ví dụ. Project hiện
    - **Lỗi lần đầu, thử lại thành công:** hiển thị lỗi; bấm **“Thử lại”** để tải danh sách mẫu.
 4. Chọn một chợ: Navigator trả về đối tượng `Market`; màn hình đăng nhập hiển thị tên chợ mẫu đã chọn và SnackBar.
 5. Bấm **“Demo xem khu vực và gian hàng”** trên màn hình đăng nhập để mở danh sách khu vực của chợ đã chọn.
-6. Chọn một khu vực để xem gian hàng tương ứng. Mỗi dòng hiển thị tên gian hàng, khu vực và vị trí sạp mẫu; chưa mở sản phẩm hoặc đặt hàng.
+6. Chọn một khu vực để xem gian hàng tương ứng. Mỗi dòng hiển thị tên gian hàng, khu vực và vị trí sạp mẫu. Bấm gian hàng để mở danh sách sản phẩm của gian đó; bấm sản phẩm để xem chi tiết.
 7. Ở màn hình khu vực và gian hàng, dùng **“Kịch bản dữ liệu mẫu”** để thử dữ liệu, danh sách rỗng hoặc lỗi lần đầu; bấm **“Thử lại”** để tải thành công. Dữ liệu mặc định có 3 khu vực mỗi chợ và 2 gian hàng mỗi khu vực.
-8. Bấm Back từ gian hàng để về khu vực, rồi về màn hình đăng nhập. Bấm Back ở màn hình chọn chợ khi chưa chọn không thay đổi lựa chọn trước đó.
+8. Tìm theo tên trong ô tìm kiếm của danh sách sản phẩm. Từ danh sách của một gian hàng, bấm **“Tìm sản phẩm trong toàn chợ”** để mở phạm vi toàn chợ. Cũng có thể bấm biểu tượng tìm kiếm trên thanh tiêu đề màn hình khu vực.
+9. Màn hình tìm toàn chợ luôn dùng chợ đã chọn, không chỉ khu vực đang xem; các dòng kết quả ghi tên gian hàng để phân biệt sản phẩm trùng tên.
+10. Ở danh sách sản phẩm, có thể đổi kịch bản mẫu, thử lại hoặc xóa từ khóa để khôi phục danh sách. Giá và đơn vị tính được hiển thị cả ở danh sách và chi tiết.
+11. Bấm Back lần lượt để về màn hình trước. Bấm Back ở màn hình chọn chợ khi chưa chọn không thay đổi lựa chọn trước đó. Luồng này vẫn là demo, không xác thực hoặc tạo đơn.
 
 ## Kiểm tra chất lượng
 
@@ -161,19 +181,22 @@ flutter analyze
 flutter test
 ```
 
-**Kết quả kiểm thử mới nhất: 30 bài kiểm thử đều đạt**, gồm 15 bài tài khoản/chọn chợ đã có và 15 bài mới cho khu vực/gian hàng.
+**Kết quả kiểm thử mới nhất: 45 bài kiểm thử đều đạt**, gồm 30 bài đã có và 15 bài mới cho sản phẩm, tìm kiếm, chi tiết và định dạng giá.
 
-Có thể chạy riêng kiểm thử chọn chợ hoặc khu vực/gian hàng:
+Có thể chạy riêng kiểm thử chọn chợ, khu vực/gian hàng hoặc sản phẩm:
 
 ```powershell
 flutter test test/market_selection_test.dart
 flutter test test/market_directory_test.dart
+flutter test test/product_test.dart
 ```
 
 - [widget_test.dart](test/widget_test.dart): dữ liệu form, ẩn/hiện mật khẩu, Navigator, phản hồi chờ Backend và bố cục khi có bàn phím.
 - [market_selection_test.dart](test/market_selection_test.dart): service mẫu, loading, danh sách, rỗng, lỗi/thử lại, trả kết quả chọn và kịch bản demo.
 
 - [market_directory_test.dart](test/market_directory_test.dart): lọc đúng chợ/khu vực, loại bản ghi sai liên kết, loading/rỗng/lỗi/thử lại ở hai màn hình, điều hướng và thay đổi chợ trong demo.
+
+- [product_test.dart](test/product_test.dart): lọc đúng chợ/gian hàng, tìm tên và xóa từ khóa, giá/đơn vị, loading/rỗng/lỗi/thử lại, điều hướng chi tiết và màn hình nhỏ có bàn phím.
 
 Các test hiện tại kiểm tra logic và giao diện với dữ liệu trong bộ nhớ; chưa kiểm thử tích hợp API hoặc xác thực thật.
 
@@ -183,13 +206,13 @@ Các test hiện tại kiểm tra logic và giao diện với dữ liệu trong 
 |---|---|
 | **F1** | Dart class, List, null safety, StatelessWidget/StatefulWidget và cập nhật giao diện bằng `setState` |
 | **F2** | Column, Padding, SizedBox, theme; SafeArea, SingleChildScrollView, ConstrainedBox và giới hạn chiều rộng |
-| **F3** | Form, GlobalKey, TextFormField, validator, TextEditingController và `dispose` controller |
+| **F3** | Form, GlobalKey, TextFormField, validator; TextField tìm kiếm, TextEditingController và `dispose` controller |
 | **F4** | Navigator.push/pop, MaterialPageRoute, trả đối tượng Market, truyền chợ/khu vực giữa màn hình, xử lý kết quả null và kiểm tra mounted sau await |
-| **F5** | Model tách khỏi Widget, ListView.builder, Card/ListTile và key theo ID chợ, khu vực, gian hàng |
+| **F5** | Model tách khỏi Widget, ListView.builder, Card/ListTile và key theo ID chợ, khu vực, gian hàng và sản phẩm |
 | **F6** | Scaffold, SnackBar và phản hồi thao tác |
 
-Loading/error dùng `FutureBuilder` theo **Phụ lục 3 của tài liệu đồ án**, không quy thành nội dung chính của Lab F6. Hiện danh sách dùng biểu tượng chợ; chưa triển khai tải ảnh URL, Drawer hoặc NavigationBar.
+Loading/error dùng `FutureBuilder` theo **Phụ lục 3 của tài liệu đồ án**, không quy thành nội dung chính của Lab F6. Hiện danh sách dùng biểu tượng chợ/gian hàng/sản phẩm; chưa triển khai tải ảnh URL, Drawer hoặc NavigationBar.
 
 ## Hướng phát triển tiếp theo
 
-Tiếp tục triển khai sản phẩm; sau đó là giỏ hàng, khung giờ/phí, đặt đơn, theo dõi đơn và khiếu nại. Khi tích hợp Backend, cần thống nhất hợp đồng API, mã lỗi và nghiệp vụ với thành viên phụ trách; giá, phí và quyền thao tác phải được máy chủ kiểm tra.
+Tiếp tục triển khai giỏ hàng, khung giờ/phí, đặt đơn, theo dõi đơn và khiếu nại. Khi tích hợp Backend, cần thống nhất hợp đồng API, mã lỗi và nghiệp vụ với thành viên phụ trách; giá, phí và quyền thao tác phải được máy chủ kiểm tra.

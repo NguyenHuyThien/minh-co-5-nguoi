@@ -6,6 +6,7 @@ import '../models/stall.dart';
 import '../services/mock_market_directory_service.dart';
 import '../services/mock_market_service.dart';
 import '../widgets/demo_list_widgets.dart';
+import 'product_list_page.dart';
 
 class StallListPage extends StatefulWidget {
   const StallListPage({
@@ -95,7 +96,7 @@ class _StallListPageState extends State<StallListPage> {
                       const SizedBox(height: 8),
                       const Text(
                         'Thông tin gian hàng và vị trí sạp là dữ liệu mẫu. '
-                        'Chỉ xem danh sách, chưa có sản phẩm hoặc đặt hàng.',
+                        'Có thể xem sản phẩm mẫu; chưa có giỏ hàng hoặc đặt đơn.',
                       ),
                       if (widget.service == null) ...[
                         const SizedBox(height: 16),
@@ -141,6 +142,16 @@ class _StallListPageState extends State<StallListPage> {
                               title: Text(stall.name),
                               subtitle: Text(
                                 'Khu vực: ${widget.area.name}\n${stall.location}',
+                              ),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () => Navigator.push<void>(
+                                context,
+                                MaterialPageRoute<void>(
+                                  builder: (context) => ProductListPage(
+                                    market: widget.market,
+                                    stall: stall,
+                                  ),
+                                ),
                               ),
                             ),
                           );
