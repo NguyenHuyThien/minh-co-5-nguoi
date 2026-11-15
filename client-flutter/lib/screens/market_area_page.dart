@@ -5,6 +5,7 @@ import '../models/market_area.dart';
 import '../services/mock_market_directory_service.dart';
 import '../services/mock_market_service.dart';
 import '../widgets/demo_list_widgets.dart';
+import '../widgets/cart_button.dart';
 import 'stall_list_page.dart';
 import 'product_list_page.dart';
 
@@ -57,6 +58,7 @@ class _MarketAreaPageState extends State<MarketAreaPage> {
       appBar: AppBar(
         title: const Text('Khu vực · Demo'),
         actions: [
+          const CartButton(),
           IconButton(
             key: const ValueKey('open_market_product_search'),
             tooltip: 'Tìm sản phẩm trong chợ',

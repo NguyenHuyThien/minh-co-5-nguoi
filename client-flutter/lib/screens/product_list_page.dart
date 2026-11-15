@@ -7,6 +7,7 @@ import '../services/mock_market_service.dart';
 import '../services/mock_product_service.dart';
 import '../utils/currency_formatter.dart';
 import '../widgets/demo_list_widgets.dart';
+import '../widgets/cart_button.dart';
 import 'product_detail_page.dart';
 
 class ProductListPage extends StatefulWidget {
@@ -155,6 +156,7 @@ class _ProductListPageState extends State<ProductListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        actions: const [CartButton()],
         title: Text(
           widget.stall == null ? 'Tìm sản phẩm · Demo' : 'Sản phẩm · Demo',
         ),

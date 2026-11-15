@@ -4,7 +4,7 @@
 
 **Thành viên phụ trách:** Trịnh Thanh Toàn – MSSV **221A010953**.
 
-Flutter Client phục vụ khách hàng chọn chợ, mua hàng và theo dõi đơn đi chợ hộ. Phiên bản hiện tại triển khai giao diện tài khoản và luồng chọn chợ → khu vực → gian hàng → sản phẩm → chi tiết bằng dữ liệu mẫu. Xem [README chung của nhóm](../README.md) để biết phân công toàn hệ thống.
+Flutter Client phục vụ khách hàng chọn chợ, mua hàng và theo dõi đơn đi chợ hộ. Phiên bản hiện tại triển khai giao diện tài khoản và luồng chọn chợ → khu vực → gian hàng → sản phẩm → chi tiết và giỏ hàng bằng dữ liệu mẫu. Xem [README chung của nhóm](../README.md) để biết phân công toàn hệ thống.
 
 ## Công nghệ và môi trường
 
@@ -36,7 +36,7 @@ Project hiện giữ các dependency của template Flutter: `cupertino_icons`, 
 | Chọn chợ gần nhất theo vị trí | Dự kiến | Chưa lấy vị trí, tính khoảng cách hoặc sắp theo khoảng cách |
 | Khu vực và gian hàng | Đã triển khai demo bằng Mock Data | Xem khu vực theo chợ, gian hàng theo khu vực; lọc đúng ID chợ và khu vực, chưa gọi API thật |
 | Tìm kiếm và chi tiết sản phẩm | Đã triển khai demo bằng Mock Data | Danh sách theo gian hàng; tìm tên trong gian hàng hoặc toàn chợ; chi tiết, giá và tồn hàng đều là mẫu |
-| Giỏ hàng nhiều gian hàng trong cùng chợ | Dự kiến | Bao gồm số lượng và ghi chú từng dòng hàng |
+| Giỏ hàng nhiều gian hàng trong cùng chợ | Đã triển khai demo bằng Mock Data | Thêm/gộp dòng, số lượng nguyên, ghi chú riêng, nhóm gian hàng, xác nhận xóa và hoàn tác; chỉ giữ trong bộ nhớ |
 | Chọn khung giờ, xem phí và đặt đơn | Dự kiến | Cần thống nhất nghiệp vụ và API |
 | Theo dõi đơn hàng | Dự kiến | Chưa kết nối dữ liệu đơn |
 | Khiếu nại kèm ảnh | Dự kiến | Chưa có form, chọn ảnh hoặc API upload |
@@ -48,7 +48,7 @@ Project hiện giữ các dependency của template Flutter: `cupertino_icons`, 
 - Nút **“Demo chọn chợ · Dữ liệu mẫu”** là lối trải nghiệm giao diện được ghi rõ trên màn hình đăng nhập; không cấp quyền đặt hàng.
 - Tên và địa chỉ chợ trong [MockMarketService](lib/services/mock_market_service.dart) đều là dữ liệu minh họa trong bộ nhớ, không phải danh sách chợ lấy từ API.
 - Không hiển thị khoảng cách, tọa độ hoặc vị trí giả như dữ liệu thật.
-- Chợ đã chọn chỉ được giữ tạm trong trạng thái màn hình đăng nhập; chưa lưu bền vững hoặc tạo đơn.
+- Chợ đang mua được ghi nhận trong controller giỏ và hiển thị trên màn hình đăng nhập; chợ và giỏ chỉ giữ trong bộ nhớ, chưa lưu bền vững hoặc tạo đơn.
 - Sau khi chọn chợ, nút **“Demo xem khu vực và gian hàng”** mở luồng **chợ đã chọn → danh sách khu vực → danh sách gian hàng**. Chợ và khu vực được truyền qua Navigator.
 - [MockMarketDirectoryService](lib/services/mock_market_directory_service.dart) cung cấp khu vực, gian hàng và vị trí sạp minh họa. Service và màn hình lọc theo ID để không hiển thị gian hàng sai chợ hoặc khu vực; đây chưa phải dữ liệu từ Backend API.
 
@@ -57,7 +57,15 @@ Project hiện giữ các dependency của template Flutter: `cupertino_icons`, 
 - [MockProductService](lib/services/mock_product_service.dart) cung cấp sản phẩm theo gian hàng; kiểm tra ID chợ và gian hàng. Màn hình tiếp tục lọc ID để không hiển thị sản phẩm của chợ khác.
 - Mỗi gian hàng có 3 sản phẩm mẫu. Giá là số đồng nguyên, hiển thị dạng **“Giá mẫu: 18.000 ₫ / kg”**; tên, giá và tình trạng còn/hết hàng đều chỉ để thử giao diện, không phải dữ liệu thực tế từ chợ.
 - Tìm theo tên bằng dữ liệu đã tải, không phân biệt chữ hoa/thường và bỏ khoảng trắng đầu/cuối; dấu tiếng Việt vẫn được giữ khi so khớp. Chưa tìm kiếm qua Backend API.
-- Ảnh dùng biểu tượng placeholder; chưa tải ảnh URL. Chi tiết chỉ hiển thị thông tin, chưa có thêm giỏ hàng hoặc đặt đơn.
+- Ảnh dùng biểu tượng placeholder; chưa tải ảnh URL. Chi tiết hỗ trợ thêm vào giỏ mẫu; chưa có đặt đơn.
+
+### Giỏ hàng mẫu
+
+- Yêu cầu từ đề bài: nhiều gian hàng **cùng một chợ**, ghi chú riêng từng dòng; xóa có xác nhận và SnackBar Hoàn tác theo mục C.2.6. Giá/tạm tính Client không phải giá trị thanh toán chính thức.
+- [CartItem](lib/models/cart_item.dart) lưu ID dòng riêng, Product, số lượng nguyên và ghi chú. Product dùng chung không bị sửa để lưu ghi chú.
+- [CartController](lib/state/cart_controller.dart) tách nghiệp vụ khỏi Widget; root ứng dụng sở hữu một controller, chia sẻ qua [CartScope](lib/state/cart_scope.dart) dùng `InheritedNotifier` của Flutter SDK. Không tạo giỏ riêng ở từng màn hình và không dùng thư viện quản lý trạng thái ngoài.
+- Giỏ nhóm dòng theo gian hàng, hiển thị giá mẫu và tổng tiền hàng **tạm tính, chưa gồm phí dịch vụ**. Chưa có thanh toán hoặc tạo đơn.
+- Nút giỏ trên thanh tiêu đề hiển thị số dòng, không phải tổng số đơn vị sản phẩm.
 
 ### Kiểm tra dữ liệu tài khoản
 
@@ -86,7 +94,8 @@ client-flutter/
 │   │   ├── market.dart
 │   │   ├── market_area.dart
 │   │   ├── stall.dart
-│   │   └── product.dart
+│   │   ├── product.dart
+│   │   └── cart_item.dart
 │   ├── screens/
 │   │   ├── login_page.dart
 │   │   ├── register_page.dart
@@ -94,33 +103,43 @@ client-flutter/
 │   │   ├── market_area_page.dart
 │   │   ├── stall_list_page.dart
 │   │   ├── product_list_page.dart
-│   │   └── product_detail_page.dart
+│   │   ├── product_detail_page.dart
+│   │   └── cart_page.dart
 │   ├── services/
 │   │   ├── mock_market_service.dart
 │   │   ├── mock_market_directory_service.dart
 │   │   └── mock_product_service.dart
+│   ├── state/
+│   │   ├── cart_controller.dart
+│   │   └── cart_scope.dart
 │   ├── utils/
 │   │   └── currency_formatter.dart
 │   ├── validators/
 │   │   └── auth_validators.dart
 │   └── widgets/
-│       └── demo_list_widgets.dart
+│       ├── demo_list_widgets.dart
+│       ├── cart_button.dart
+│       └── cart_note_dialog.dart
 ├── test/
 │   ├── widget_test.dart
 │   ├── market_selection_test.dart
 │   ├── market_directory_test.dart
-│   └── product_test.dart
+│   ├── product_test.dart
+│   ├── cart_controller_test.dart
+│   └── cart_widget_test.dart
 ├── analysis_options.yaml
 ├── pubspec.yaml
 ├── pubspec.lock
 └── README.md
 ```
 
-- [main.dart](lib/main.dart): điểm khởi chạy, theme xanh Material 3 và màn hình đăng nhập.
+- [main.dart](lib/main.dart): điểm khởi chạy, sở hữu vòng đời CartController, theme xanh Material 3 và màn hình đăng nhập.
 - [models/market.dart](lib/models/market.dart): model chợ bất biến gồm ID, tên và địa chỉ.
 - [models/market_area.dart](lib/models/market_area.dart) và [models/stall.dart](lib/models/stall.dart): model khu vực và gian hàng, có ID liên kết chợ/khu vực.
 - [models/product.dart](lib/models/product.dart): sản phẩm gắn ID chợ/gian hàng, tên, giá mẫu, đơn vị, mô tả và còn hàng.
-- [screens/](lib/screens/): giao diện tài khoản, chọn chợ, khu vực/gian hàng, danh sách/tìm kiếm và chi tiết sản phẩm.
+- [screens/](lib/screens/): giao diện tài khoản, chọn chợ, khu vực/gian hàng, danh sách/tìm kiếm/chi tiết sản phẩm và giỏ mẫu.
+- [state/cart_controller.dart](lib/state/cart_controller.dart): quy tắc giỏ dùng chung; [state/cart_scope.dart](lib/state/cart_scope.dart) chia sẻ controller qua Flutter SDK.
+- [widgets/cart_button.dart](lib/widgets/cart_button.dart) và [widgets/cart_note_dialog.dart](lib/widgets/cart_note_dialog.dart): mở giỏ và chỉnh sửa ghi chú từng dòng.
 - [services/mock_market_service.dart](lib/services/mock_market_service.dart): cung cấp dữ liệu mẫu, độ trễ và lỗi mô phỏng, tách khỏi Widget.
 - [services/mock_market_directory_service.dart](lib/services/mock_market_directory_service.dart): dữ liệu khu vực/gian hàng theo ID chợ và khu vực, có mô phỏng rỗng và lỗi.
 - [services/mock_product_service.dart](lib/services/mock_product_service.dart): sản phẩm mẫu theo chợ/gian hàng và kịch bản loading/rỗng/lỗi.
@@ -172,6 +191,34 @@ Dùng ID thực tế từ `flutter devices` nếu khác ví dụ. Project hiện
 10. Ở danh sách sản phẩm, có thể đổi kịch bản mẫu, thử lại hoặc xóa từ khóa để khôi phục danh sách. Giá và đơn vị tính được hiển thị cả ở danh sách và chi tiết.
 11. Bấm Back lần lượt để về màn hình trước. Bấm Back ở màn hình chọn chợ khi chưa chọn không thay đổi lựa chọn trước đó. Luồng này vẫn là demo, không xác thực hoặc tạo đơn.
 
+### Trải nghiệm giỏ hàng mẫu
+
+1. Theo luồng demo đến chi tiết một sản phẩm còn hàng.
+2. Chọn số lượng bằng nút +/−, nhập ghi chú riêng rồi bấm **“Thêm vào giỏ”**. Sản phẩm hết hàng có nút thêm bị vô hiệu hóa.
+3. Quay lại và thêm sản phẩm từ gian hàng khác trong cùng chợ. Có thể tìm trong toàn chợ để thử nhanh nhiều gian hàng.
+4. Bấm biểu tượng **“Giỏ hàng mẫu”** trên thanh tiêu đề để xem danh sách nhóm theo gian hàng và tổng tạm tính.
+5. Thử tăng/giảm, **“Sửa ghi chú”**, xóa nội dung ghi chú, xóa dòng và **“Hoàn tác”**. Giảm từ 1 cũng mở xác nhận xóa.
+6. Thêm lại cùng Product ID với ghi chú giống nhau sau trim để thấy cộng số lượng; dùng ghi chú khác để giữ riêng. Sửa ghi chú thành trùng để kiểm tra gộp dòng.
+7. Back về sản phẩm/gian hàng rồi mở giỏ lại: dữ liệu vẫn còn. Hoàn tác vẫn dùng được khi SnackBar còn hiển thị sau khi Back khỏi màn hình giỏ.
+8. Về màn hình đăng nhập, chọn chợ khác khi giỏ còn hàng: Hủy/Back giữ nguyên; **“Đổi chợ và xóa giỏ”** mới xóa và chuyển chợ. Không có bước đặt đơn thật.
+
+## Các quy tắc tạm thời cần thống nhất với nhóm
+
+Các quy tắc sau do Toàn xác nhận cho **phiên bản Mock Data**, không phải quy định chi tiết của giảng viên:
+
+| Nội dung | Quy tắc demo hiện tại |
+|---|---|
+| Đổi chợ khi có hàng | Chọn chợ khác sẽ hỏi “Hủy” hoặc “Đổi chợ và xóa giỏ”. Hủy/Back giữ nguyên chợ và giỏ; chỉ xem danh sách chợ không xóa giỏ. Chọn lại chợ hiện tại giữ nguyên giỏ. |
+| Số lượng nguyên và bước tăng/giảm | Ban đầu 1, mỗi bước ±1, không cho 0/âm; chưa hỗ trợ 0,5 kg. Không đặt giới hạn tồn kho hay trần 99. ERD dùng DECIMAL, schema hiện dùng INTEGER; cần thống nhất khi tích hợp, chưa sửa database. |
+| Gộp sản phẩm trùng | Cùng Product ID và ghi chú giống nhau sau trim thì cộng số lượng; khác ghi chú giữ dòng riêng. Sửa ghi chú thành trùng sẽ gộp đủ số lượng, giữ ID dòng đang sửa, không sửa Product hoặc ghi chú khác. |
+| Giảm từ 1 | Mở xác nhận xóa; Hủy/Back giữ nguyên. Xác nhận xóa có SnackBar Hoàn tác. |
+| Hoàn tác | Phục hồi ID, số lượng, ghi chú và vị trí hợp lý; chỉ dùng một lần trong cùng phiên chợ. Nếu đã thêm lại dòng trùng, cộng số lượng vào ID dòng cũ. Không phục hồi giỏ cũ sau đổi chợ. |
+| Làm tròn tiền | Chưa áp dụng quy tắc làm tròn cho số lượng thập phân. Hiện giá là số đồng nguyên, số lượng là số nguyên. Cần chốt lại với Backend trước khi hỗ trợ kg lẻ. |
+| Thời gian tồn tại và cách lưu giỏ | Một giỏ dùng chung trong bộ nhớ qua các màn hình. Không lưu SharedPreferences/SQLite, không đồng bộ server; mất khi khởi động lại ứng dụng. |
+| Hết hàng, khóa gian hàng và đổi giá | Chỉ thêm Product có `inStock = true` trong dữ liệu mẫu. Chưa kiểm tra tồn thực tế, khóa gian hàng hoặc giá thay đổi qua API. Backend sau này phải kiểm tra lại trước khi tạo đơn. |
+
+**Giới hạn kỹ thuật:** số lượng mỗi dòng và tổng tạm tính không vượt `2^53−1 = 9.007.199.254.740.991`, là giới hạn số nguyên chính xác dùng được cả khi Dart chạy trên web. Controller kiểm tra bằng `BigInt` trước khi lưu kết quả về `int`; lỗi không làm thay đổi giỏ. Đây không phải giới hạn mua hàng do chợ quy định.
+
 ## Kiểm tra chất lượng
 
 Chạy từ `client-flutter/`:
@@ -181,7 +228,7 @@ flutter analyze
 flutter test
 ```
 
-**Kết quả kiểm thử mới nhất: 45 bài kiểm thử đều đạt**, gồm 30 bài đã có và 15 bài mới cho sản phẩm, tìm kiếm, chi tiết và định dạng giá.
+**Kết quả kiểm thử mới nhất: 75 bài kiểm thử đều đạt**, gồm 45 bài đã có và 30 bài mới cho giỏ hàng (16 unit test và 14 widget test). Test sản phẩm hết hàng cũ được cập nhật để kiểm tra nút thêm bị vô hiệu thay vì chưa có nút.
 
 Có thể chạy riêng kiểm thử chọn chợ, khu vực/gian hàng hoặc sản phẩm:
 
@@ -189,6 +236,8 @@ Có thể chạy riêng kiểm thử chọn chợ, khu vực/gian hàng hoặc s
 flutter test test/market_selection_test.dart
 flutter test test/market_directory_test.dart
 flutter test test/product_test.dart
+flutter test test/cart_controller_test.dart
+flutter test test/cart_widget_test.dart
 ```
 
 - [widget_test.dart](test/widget_test.dart): dữ liệu form, ẩn/hiện mật khẩu, Navigator, phản hồi chờ Backend và bố cục khi có bàn phím.
@@ -197,6 +246,9 @@ flutter test test/product_test.dart
 - [market_directory_test.dart](test/market_directory_test.dart): lọc đúng chợ/khu vực, loại bản ghi sai liên kết, loading/rỗng/lỗi/thử lại ở hai màn hình, điều hướng và thay đổi chợ trong demo.
 
 - [product_test.dart](test/product_test.dart): lọc đúng chợ/gian hàng, tìm tên và xóa từ khóa, giá/đơn vị, loading/rỗng/lỗi/thử lại, điều hướng chi tiết và màn hình nhỏ có bàn phím.
+
+- [cart_controller_test.dart](test/cart_controller_test.dart): quan hệ chợ/gian hàng, gộp dòng và ghi chú, số lượng, tổng tiền, hoàn tác/ID/vị trí, giới hạn kỹ thuật.
+- [cart_widget_test.dart](test/cart_widget_test.dart): thêm hàng, giữ giỏ khi điều hướng, đổi chợ Hủy/Back/xác nhận, sửa ghi chú và bàn phím, xóa/hoàn tác kể cả sau khi Back khỏi màn hình giỏ.
 
 Các test hiện tại kiểm tra logic và giao diện với dữ liệu trong bộ nhớ; chưa kiểm thử tích hợp API hoặc xác thực thật.
 
@@ -209,10 +261,12 @@ Các test hiện tại kiểm tra logic và giao diện với dữ liệu trong 
 | **F3** | Form, GlobalKey, TextFormField, validator; TextField tìm kiếm, TextEditingController và `dispose` controller |
 | **F4** | Navigator.push/pop, MaterialPageRoute, trả đối tượng Market, truyền chợ/khu vực giữa màn hình, xử lý kết quả null và kiểm tra mounted sau await |
 | **F5** | Model tách khỏi Widget, ListView.builder, Card/ListTile và key theo ID chợ, khu vực, gian hàng và sản phẩm |
-| **F6** | Scaffold, SnackBar và phản hồi thao tác |
+| **F6** | Scaffold, AlertDialog xác nhận, SnackBar có Hoàn tác và dữ liệu dùng chung giữa màn hình |
+
+Việc chia sẻ giỏ bằng `ChangeNotifier`/`InheritedNotifier` và kiểm tra số nguyên bằng `BigInt` là phần bổ sung từ Flutter/Dart SDK để đáp ứng giỏ dùng chung và tránh sai số, không coi là nội dung đã dạy trực tiếp trong F1–F6.
 
 Loading/error dùng `FutureBuilder` theo **Phụ lục 3 của tài liệu đồ án**, không quy thành nội dung chính của Lab F6. Hiện danh sách dùng biểu tượng chợ/gian hàng/sản phẩm; chưa triển khai tải ảnh URL, Drawer hoặc NavigationBar.
 
 ## Hướng phát triển tiếp theo
 
-Tiếp tục triển khai giỏ hàng, khung giờ/phí, đặt đơn, theo dõi đơn và khiếu nại. Khi tích hợp Backend, cần thống nhất hợp đồng API, mã lỗi và nghiệp vụ với thành viên phụ trách; giá, phí và quyền thao tác phải được máy chủ kiểm tra.
+Tiếp tục triển khai khung giờ/phí, đặt đơn, theo dõi đơn và khiếu nại. Khi tích hợp Backend, cần thống nhất hợp đồng API, mã lỗi và nghiệp vụ với thành viên phụ trách; giá, phí và quyền thao tác phải được máy chủ kiểm tra.

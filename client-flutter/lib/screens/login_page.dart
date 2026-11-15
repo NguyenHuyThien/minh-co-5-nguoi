@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../models/market.dart';
+import '../state/cart_scope.dart';
+import '../widgets/cart_button.dart';
 import '../validators/auth_validators.dart';
 import 'market_area_page.dart';
 import 'market_selection_page.dart';
@@ -36,6 +38,35 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
     if (!mounted || market == null) return;
+    final cart = CartScope.maybeOf(context);
+    if (cart == null) return;
+    if (cart.needsMarketChangeConfirmation(market)) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Đổi chợ đang mua?'),
+          content: Text(
+            'Giỏ của ${cart.market!.name} đang có hàng. '
+            'Đổi sang ${market.name} sẽ xóa toàn bộ giỏ cũ.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Hủy'),
+            ),
+            FilledButton(
+              key: const ValueKey('confirm_market_change'),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Đổi chợ và xóa giỏ'),
+            ),
+          ],
+        ),
+      );
+      if (!mounted || confirmed != true) return;
+      cart.selectMarket(market, clearExisting: true);
+    } else {
+      cart.selectMarket(market);
+    }
     setState(() => _demoMarket = market);
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -60,7 +91,10 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Đi Chợ Hộ')),
+      appBar: AppBar(
+        title: const Text('Đi Chợ Hộ'),
+        actions: const [CartButton()],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,

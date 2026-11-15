@@ -6,6 +6,7 @@ import '../models/stall.dart';
 import '../services/mock_market_directory_service.dart';
 import '../services/mock_market_service.dart';
 import '../widgets/demo_list_widgets.dart';
+import '../widgets/cart_button.dart';
 import 'product_list_page.dart';
 
 class StallListPage extends StatefulWidget {
@@ -67,14 +68,20 @@ class _StallListPageState extends State<StallListPage> {
   Widget build(BuildContext context) {
     if (widget.area.marketId != widget.market.id) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Gian hàng · Demo')),
+        appBar: AppBar(
+          title: const Text('Gian hàng · Demo'),
+          actions: const [CartButton()],
+        ),
         body: const DemoListMessage(
           text: 'Khu vực không thuộc chợ đã chọn. Vui lòng quay lại.',
         ),
       );
     }
     return Scaffold(
-      appBar: AppBar(title: const Text('Gian hàng · Demo')),
+      appBar: AppBar(
+        title: const Text('Gian hàng · Demo'),
+        actions: const [CartButton()],
+      ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -96,7 +103,7 @@ class _StallListPageState extends State<StallListPage> {
                       const SizedBox(height: 8),
                       const Text(
                         'Thông tin gian hàng và vị trí sạp là dữ liệu mẫu. '
-                        'Có thể xem sản phẩm mẫu; chưa có giỏ hàng hoặc đặt đơn.',
+                        'Có thể xem sản phẩm và giỏ mẫu; chưa đặt đơn.',
                       ),
                       if (widget.service == null) ...[
                         const SizedBox(height: 16),
