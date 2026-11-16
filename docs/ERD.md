@@ -1,254 +1,258 @@
-
 # ERD – Nền tảng số hóa chợ truyền thống – Đi chợ hộ
 
 ## 1. Tổng quan
 
-Cơ sở dữ liệu sử dụng PostgreSQL trên Supabase.
+Cơ sở dữ liệu PostgreSQL trên Supabase. ERD dưới đây dùng đúng tên bảng, cột và giá trị trạng thái đang được định nghĩa trong `database/schema.sql`.
 
-Hệ thống có 4 vai trò:
-- KHACH: Khách hàng.
-- TIEU_THUONG: Tiểu thương.
-- NGUOI_DI_CHO: Người đi chợ hộ.
-- BQL: Ban quản lý chợ.
+### Vai trò người dùng
 
-Mỗi tài khoản chỉ có một vai trò duy nhất, được lựa chọn khi đăng ký.
-Không hỗ trợ bổ sung hoặc chuyển đổi vai trò.
+- `customer`: Khách hàng.
+- `stall_owner`: Tiểu thương.
+- `shopper`: Người đi chợ hộ.
+- `admin`: Ban quản lý chợ.
 
-Quy trình xét duyệt:
-- KHACH: Không cần xét duyệt.
-- NGUOI_DI_CHO: Không cần xét duyệt.
-- TIEU_THUONG: Được đăng ký tài khoản nhưng phải đăng ký gian hàng và chờ BQL xét duyệt trước khi kinh doanh.
-- BQL: Tài khoản được cấp nội bộ, không đăng ký công khai.
+Mỗi tài khoản có một vai trò trong cột `users.role`. Không tự chuyển vai trò trong quy trình đăng ký.
 
 ## 2. Sơ đồ ERD
 
 ```mermaid
 erDiagram
-    NGUOI_DUNG {
+    users {
         UUID id PK
+        VARCHAR full_name
         VARCHAR email UK
-        TEXT mat_khau_hash
-        VARCHAR ho_ten
-        VARCHAR sdt UK
-        VARCHAR vai_tro
-        VARCHAR trang_thai_tai_khoan
-        TIMESTAMP ngay_tao
-        TIMESTAMP ngay_cap_nhat
+        TEXT password_hash
+        VARCHAR phone UK
+        VARCHAR role
+        VARCHAR status
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
     }
-
-    CHO {
+    markets {
         UUID id PK
-        VARCHAR ten
-        TEXT dia_chi
-        VARCHAR phuong_xa
-        DECIMAL vi_do
-        DECIMAL kinh_do
-        VARCHAR trang_thai
+        VARCHAR name
+        TEXT address
+        TEXT description
+        NUMERIC latitude
+        NUMERIC longitude
+        VARCHAR status
+        TIMESTAMPTZ created_at
     }
-
-    KHU_VUC {
+    market_areas {
         UUID id PK
-        UUID cho_id FK
-        VARCHAR ten
-        TEXT mo_ta
+        UUID market_id FK
+        VARCHAR name
+        TEXT description
+        TEXT map_image_url
+        INTEGER map_width
+        INTEGER map_height
+        TIMESTAMPTZ created_at
     }
-
-    GIAN_HANG {
+    stalls {
         UUID id PK
-        UUID cho_id FK
-        UUID khu_vuc_id FK
-        UUID chu_sap_id FK
-        VARCHAR ten_sap
-        VARCHAR sdt
-        VARCHAR trang_thai_duyet
-        TEXT ly_do_tu_choi
-        TIMESTAMP ngay_tao
-        TIMESTAMP ngay_cap_nhat
+        UUID market_id FK
+        UUID area_id FK
+        UUID owner_id FK
+        VARCHAR stall_code
+        VARCHAR name
+        TEXT description
+        VARCHAR contact_phone
+        TEXT rejection_reason
+        NUMERIC map_x
+        NUMERIC map_y
+        VARCHAR status
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
     }
-
-    MAT_HANG {
+    products {
         UUID id PK
-        UUID gian_hang_id FK
-        VARCHAR ten
-        VARCHAR don_vi_tinh
-        DECIMAL gia
-        TEXT anh_url
-        VARCHAR trang_thai_duyet
-        BOOLEAN con_hang
-        TIMESTAMP ngay_tao
-        TIMESTAMP ngay_cap_nhat
+        UUID stall_id FK
+        VARCHAR name
+        TEXT description
+        NUMERIC price
+        VARCHAR unit
+        TEXT image_url
+        INTEGER stock_quantity
+        BOOLEAN is_in_stock
+        VARCHAR status
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
     }
-
-    DON_DI_CHO {
+    stall_applications {
         UUID id PK
-        UUID khach_id FK
-        UUID cho_id FK
-        UUID nguoi_di_cho_id FK
-        UUID nguoi_phan_cong_id FK
-        TEXT dia_chi_giao
-        VARCHAR khung_gio
-        DECIMAL phi_dich_vu
-        DECIMAL tong_tien_hang
-        DECIMAL tong_thanh_toan
-        VARCHAR trang_thai
-        VARCHAR trang_thai_thanh_toan
-        TIMESTAMP ngay_tao
-        TIMESTAMP ngay_cap_nhat
+        UUID market_id FK
+        UUID area_id FK
+        UUID applicant_id FK
+        VARCHAR requested_stall_name
+        TEXT business_description
+        VARCHAR contact_phone
+        VARCHAR status
+        TEXT admin_note
+        TIMESTAMPTZ reviewed_at
+        TIMESTAMPTZ created_at
     }
-
-    CHI_TIET_DON {
+    orders {
         UUID id PK
-        UUID don_id FK
-        UUID mat_hang_id FK
-        VARCHAR ten_mat_hang
-        VARCHAR don_vi_tinh
-        DECIMAL gia_tai_thoi_diem_dat
-        DECIMAL so_luong
-        TEXT ghi_chu
-        DECIMAL thanh_tien
+        UUID market_id FK
+        UUID customer_id FK
+        UUID shopper_id FK
+        UUID assigned_by FK
+        TEXT delivery_address
+        TEXT delivery_note
+        TIMESTAMPTZ delivery_slot
+        NUMERIC subtotal
+        NUMERIC delivery_fee
+        NUMERIC total_amount
+        VARCHAR payment_status
+        VARCHAR status
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
     }
-
-    KHIEU_NAI {
+    order_items {
         UUID id PK
-        UUID don_id FK
-        UUID nguoi_gui_id FK
-        TEXT noi_dung
-        TEXT anh_url
-        VARCHAR trang_thai
-        TEXT huong_xu_ly
-        UUID xu_ly_boi FK
-        TIMESTAMP ngay_tao
-        TIMESTAMP ngay_xu_ly
+        UUID order_id FK
+        UUID market_id FK
+        UUID product_id FK
+        UUID stall_id FK
+        VARCHAR product_name
+        VARCHAR unit
+        NUMERIC unit_price
+        INTEGER quantity
+        TEXT note
+        NUMERIC line_total
     }
-
-    LICH_SU_GIA {
+    complaints {
         UUID id PK
-        UUID mat_hang_id FK
-        DECIMAL gia
-        TIMESTAMP ngay
+        UUID order_id FK
+        UUID customer_id FK
+        UUID handled_by FK
+        VARCHAR title
+        TEXT content
+        VARCHAR status
+        TEXT admin_response
+        TEXT resolution_method
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ processed_at
+        TIMESTAMPTZ resolved_at
     }
-
-    LICH_SU_TRANG_THAI_DON {
+    complaint_images {
         UUID id PK
-        UUID don_id FK
-        VARCHAR trang_thai_cu
-        VARCHAR trang_thai_moi
-        UUID thay_doi_boi FK
-        TEXT ghi_chu
-        TIMESTAMP thoi_gian
+        UUID complaint_id FK
+        TEXT image_url
+        TIMESTAMPTZ created_at
+    }
+    order_status_history {
+        UUID id PK
+        UUID order_id FK
+        UUID changed_by FK
+        VARCHAR old_status
+        VARCHAR new_status
+        TEXT note
+        TIMESTAMPTZ created_at
+    }
+    price_history {
+        UUID id PK
+        UUID product_id FK
+        UUID changed_by FK
+        NUMERIC old_price
+        NUMERIC new_price
+        TIMESTAMPTZ effective_at
     }
 
-    CHO ||--o{ KHU_VUC : co
-    CHO ||--o{ GIAN_HANG : co
-    KHU_VUC ||--o{ GIAN_HANG : phan_loai
-    NGUOI_DUNG ||--o{ GIAN_HANG : so_huu
-    GIAN_HANG ||--o{ MAT_HANG : kinh_doanh
-
-    NGUOI_DUNG ||--o{ DON_DI_CHO : dat_don
-    CHO ||--o{ DON_DI_CHO : tiep_nhan
-    NGUOI_DUNG o|--o{ DON_DI_CHO : duoc_phan_cong
-    NGUOI_DUNG o|--o{ DON_DI_CHO : phan_cong
-
-    DON_DI_CHO ||--|{ CHI_TIET_DON : bao_gom
-    MAT_HANG ||--o{ CHI_TIET_DON : duoc_dat
-
-    DON_DI_CHO ||--o{ KHIEU_NAI : phat_sinh
-    NGUOI_DUNG ||--o{ KHIEU_NAI : gui
-    NGUOI_DUNG o|--o{ KHIEU_NAI : xu_ly
-
-    MAT_HANG ||--o{ LICH_SU_GIA : thay_doi_gia
-
-    DON_DI_CHO ||--o{ LICH_SU_TRANG_THAI_DON : co_lich_su
-    NGUOI_DUNG ||--o{ LICH_SU_TRANG_THAI_DON : cap_nhat
+    markets ||--o{ market_areas : contains
+    markets ||--o{ stalls : contains
+    market_areas ||--o{ stalls : classifies
+    users o|--o{ stalls : owns
+    stalls ||--o{ products : sells
+    markets ||--o{ stall_applications : receives
+    market_areas ||--o{ stall_applications : receives
+    users ||--o{ stall_applications : submits
+    markets ||--o{ orders : receives
+    users ||--o{ orders : places
+    users o|--o{ orders : shopper
+    users o|--o{ orders : assigns
+    orders ||--|{ order_items : contains
+    products ||--o{ order_items : ordered
+    stalls ||--o{ order_items : sourced_from
+    orders ||--o{ complaints : has
+    users ||--o{ complaints : submits
+    users o|--o{ complaints : handles
+    complaints ||--o{ complaint_images : includes
+    orders ||--o{ order_status_history : records
+    users o|--o{ order_status_history : changes
+    products ||--o{ price_history : tracks
+    users o|--o{ price_history : changes
 ```
 
-## 3. Quy định giá trị và trạng thái
+## 3. Giá trị vai trò và trạng thái
 
-### 3.1. Vai trò người dùng
+### 3.1. `users.role`
+- `customer`
+- `shopper`
+- `stall_owner`
+- `admin`
 
-Cột `nguoi_dung.vai_tro`:
-- KHACH
-- TIEU_THUONG
-- NGUOI_DI_CHO
-- BQL
+### 3.2. `users.status`
+- `active`
+- `locked`
 
-Mỗi tài khoản chỉ có một vai trò.
+### 3.3. `markets.status`
+- `active`
+- `inactive`
 
-### 3.2. Trạng thái gian hàng
+### 3.4. `stalls.status`
+- `pending`
+- `approved`
+- `locked`
+- `rejected`
 
-Cột `gian_hang.trang_thai_duyet`:
-- CHO_DUYET: Gian hàng đang chờ BQL xét duyệt.
-- DA_DUYET: Gian hàng đã được duyệt và có thể hoạt động.
-- TU_CHOI: Gian hàng bị từ chối.
-- KHOA: Gian hàng bị khóa bởi BQL.
+### 3.5. `products.status` và `products.is_in_stock`
+- `status`: `pending`, `approved`, `hidden`, `rejected`.
+- `is_in_stock`: cờ còn hàng; `stock_quantity` lưu số lượng tồn kho.
 
-### 3.3. Trạng thái mặt hàng
+### 3.6. `orders.status`
+- `pending`
+- `confirmed`
+- `preparing`
+- `ready`
+- `delivering`
+- `completed`
+- `cancelled`
 
-Cột `mat_hang.trang_thai_duyet`:
-- CHO_DUYET
-- DA_DUYET
-- TU_CHOI
-- KHOA
+### 3.7. `orders.payment_status`
+- `pending`
+- `paid`
+- `failed`
+- `refunded`
 
-Cột `mat_hang.con_hang` xác định mặt hàng còn hàng hay hết hàng.
+### 3.8. `complaints.status`
+- `pending`
+- `processing`
+- `resolved`
+- `rejected`
 
-### 3.4. Trạng thái đơn hàng
-
-Cột `don_di_cho.trang_thai`:
-- CHO_NGUOI_DI_CHO
-- DANG_DI_CHO
-- DANG_GIAO
-- DA_GIAO
-- DA_HUY
-
-Cột `don_di_cho.trang_thai_thanh_toan` được quản lý độc lập:
-- CHUA_THANH_TOAN
-- DA_THANH_TOAN
-- THAT_BAI
-- HOAN_TIEN
-
-### 3.5. Trạng thái khiếu nại
-
-Cột `khieu_nai.trang_thai`:
-- MOI
-- DANG_XU_LY
-- DA_GIAI_QUYET
-- TU_CHOI
-
-## 4. Quy tắc nghiệp vụ và ràng buộc dữ liệu
+## 4. Quy tắc nghiệp vụ và ràng buộc
 
 1. Một người dùng có thể sở hữu nhiều gian hàng.
-2. Một gian hàng thuộc một chợ và một khu vực của chợ đó.
-3. Một gian hàng có thể kinh doanh nhiều mặt hàng.
-4. Một đơn đi chợ thuộc về một khách hàng và một chợ.
-5. Một đơn hàng có thể chứa nhiều mặt hàng từ nhiều gian hàng khác nhau, nhưng tất cả phải thuộc cùng một chợ.
-6. Mỗi dòng hàng có ghi chú riêng dành cho người đi chợ.
-7. Thông tin tên mặt hàng, đơn vị tính và giá tại thời điểm đặt phải được lưu lại trong chi tiết đơn để bảo toàn lịch sử giao dịch.
-8. Chỉ mặt hàng đã được duyệt, còn hàng và thuộc gian hàng đã được duyệt mới được đặt.
-9. BQL là bên duy nhất được phân công người đi chợ hộ cho đơn hàng.
-10. Người đi chợ hộ chỉ được xử lý những đơn được phân công cho mình.
-11. BQL có quyền khóa hoặc mở lại gian hàng.
-12. Khi gian hàng bị khóa, các mặt hàng thuộc gian hàng đó không được tiếp tục đặt.
-13. Tổng tiền hàng và tổng thanh toán phải do Backend tính toán, không lấy giá trị tổng tiền do Client gửi lên làm căn cứ.
-14. Khi trạng thái đơn hàng thay đổi, hệ thống phải lưu lịch sử thay đổi trong cùng một giao dịch dữ liệu.
-15. Không xóa cứng dữ liệu đơn hàng, chi tiết đơn hàng và lịch sử giao dịch.
+2. Một gian hàng thuộc một chợ và một khu vực của chính chợ đó.
+3. Một gian hàng kinh doanh nhiều sản phẩm.
+4. Một đơn hàng thuộc một khách hàng và một chợ.
+5. Một đơn hàng có thể lấy hàng từ nhiều gian hàng, nhưng mọi dòng hàng phải mang cùng `market_id` với đơn hàng. Khóa ngoại ghép `order_items(order_id, market_id)` tham chiếu `orders(id, market_id)`; trigger PostgreSQL kiểm tra sạp của sản phẩm có cùng `market_id` với đơn hàng, vì vậy database cũng chặn dòng hàng khác chợ. Backend vẫn cần kiểm tra trạng thái sạp/sản phẩm và tồn kho.
+6. Chi tiết đơn lưu tên sản phẩm, đơn vị tính, đơn giá tại thời điểm mua, số lượng và ghi chú.
+7. Chỉ sản phẩm đã duyệt, còn hàng và thuộc sạp đã duyệt mới được đặt. Backend kiểm tra `status`, `is_in_stock`, `stock_quantity` và trạng thái sạp.
+8. BQL là bên phân công người đi chợ hộ; `orders.assigned_by` lưu tài khoản thực hiện phân công.
+9. Người đi chợ hộ chỉ xử lý đơn được phân công cho mình (kiểm tra tại Backend).
+10. Khiếu nại có thể có nhiều ảnh; ảnh lưu trong `complaint_images`.
+11. BQL xử lý khiếu nại; `handled_by`, `resolution_method` và `processed_at` lưu thông tin xử lý.
+12. Thay đổi giá sản phẩm được ghi vào `price_history`, gồm giá cũ, giá mới, người thay đổi và thời điểm có hiệu lực.
+13. Tổng tiền do Backend tính toán, không tin tổng tiền Client gửi lên.
+14. Khi đổi trạng thái đơn, cập nhật đơn và ghi `order_status_history` trong cùng transaction.
+15. Không xóa cứng dữ liệu đơn hàng, chi tiết đơn và lịch sử giao dịch.
 
-## 5. Ràng buộc cần xử lý ở Backend
+## 5. Lưu ý triển khai
 
-- Kiểm tra khu vực và gian hàng phải thuộc cùng một chợ.
-- Kiểm tra tất cả mặt hàng trong một đơn phải thuộc cùng chợ với đơn hàng.
-- Kiểm tra trạng thái duyệt và tình trạng còn hàng tại thời điểm đặt đơn.
-- Kiểm tra người đi chợ hộ được phân công đúng đơn trước khi cập nhật trạng thái.
-- Kiểm tra người gửi khiếu nại phải là khách hàng sở hữu đơn hàng.
-- Chỉ BQL được xử lý khiếu nại và phân công người đi chợ hộ.
-- Việc cập nhật trạng thái đơn và thêm lịch sử trạng thái phải được thực hiện trong cùng một transaction.
-
-## 6. Ghi chú thiết kế
-
-- `nguoi_dung.vai_tro` lưu vai trò duy nhất của tài khoản, không cần bảng vai trò riêng.
-- Không sử dụng bảng đăng ký bổ sung vai trò.
-- Không sử dụng bảng đăng ký người đi chợ hộ vì vai trò này không cần BQL xét duyệt.
-- Việc xét duyệt tiểu thương được thực hiện thông qua `gian_hang.trang_thai_duyet`.
-- `lich_su_trang_thai_don` là bảng bổ sung để theo dõi toàn bộ quá trình xử lý đơn hàng.
-- `lich_su_gia` lưu lại giá theo thời gian để phục vụ việc xem biến động giá mặt hàng.
-- Các khóa ngoại, CHECK, UNIQUE và quy tắc transaction sẽ được triển khai cụ thể trong PostgreSQL và Backend.
+- ERD dùng đúng tên tiếng Anh và giá trị role/status trong SQL và backend, tránh song song hai bộ enum tiếng Việt/tiếng Anh.
+- `stall_applications` và `complaint_images` là bảng thực tế trong SQL nên phải xuất hiện trong ERD.
+- `order_items.market_id` được bổ sung và khóa ngoại ghép gắn dòng hàng với chợ của đơn; trigger `check_order_item_market()` kiểm tra sản phẩm/sạp cũng thuộc chợ đó. Backend cần truyền market_id của đơn khi insert từng dòng.
+- Cột mới `is_in_stock` bổ sung cho cờ còn hàng; `stock_quantity` vẫn giữ để theo dõi tồn kho.
+- Khi thêm các cột mới vào database đã tồn tại, dùng migration riêng thay vì chạy lại schema tạo bảng từ đầu.
