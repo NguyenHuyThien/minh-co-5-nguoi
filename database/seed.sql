@@ -167,23 +167,27 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- 7. CHI TIẾT ĐƠN HÀNG
 INSERT INTO order_items (
- id, order_id, product_id, stall_id,
- product_name, unit_price, quantity, note, line_total
+ id, order_id, market_id, product_id, stall_id,
+ product_name, unit, unit_price, quantity, note, line_total
 )
 VALUES
 ('dddddddd-1111-1111-1111-111111111111',
  'bbbbbbbb-1111-1111-1111-111111111111',
+ '11111111-1111-1111-1111-111111111111',
  'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
  '66666666-6666-6666-6666-666666666666',
- 'Thịt heo ba rọi', 150000, 1, 'Cắt mỏng', 150000),
+ 'Thịt heo ba rọi', 'kg', 150000, 1, 'Cắt mỏng', 150000),
 
 ('eeeeeeee-1111-1111-1111-111111111111',
  'bbbbbbbb-1111-1111-1111-111111111111',
+ '11111111-1111-1111-1111-111111111111',
  'cccccccc-cccc-cccc-cccc-cccccccccccc',
  '77777777-7777-7777-7777-777777777777',
- 'Rau muống', 15000, 2, 'Chọn rau tươi', 30000)
+ 'Rau muống', 'bó', 15000, 2, 'Chọn rau tươi', 30000)
 ON CONFLICT (id) DO UPDATE SET
+ market_id = EXCLUDED.market_id,
  product_name = EXCLUDED.product_name,
+ unit = EXCLUDED.unit,
  unit_price = EXCLUDED.unit_price,
  quantity = EXCLUDED.quantity,
  note = EXCLUDED.note,
