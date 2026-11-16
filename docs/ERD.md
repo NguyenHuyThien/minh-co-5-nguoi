@@ -237,7 +237,7 @@ erDiagram
 2. Một gian hàng thuộc một chợ và một khu vực của chính chợ đó.
 3. Một gian hàng kinh doanh nhiều sản phẩm.
 4. Một đơn hàng thuộc một khách hàng và một chợ.
-5. Một đơn hàng có thể lấy hàng từ nhiều gian hàng, nhưng mọi dòng hàng phải mang cùng `market_id` với đơn hàng. Khóa ngoại ghép `order_items(order_id, market_id)` tham chiếu `orders(id, market_id)` khóa chéo chợ ở mức database; Backend vẫn phải kiểm tra sản phẩm và sạp thuộc đúng chợ trước khi ghi.
+5. Một đơn hàng có thể lấy hàng từ nhiều gian hàng, nhưng mọi dòng hàng phải mang cùng `market_id` với đơn hàng. Khóa ngoại ghép `order_items(order_id, market_id)` tham chiếu `orders(id, market_id)`; trigger PostgreSQL kiểm tra sạp của sản phẩm có cùng `market_id` với đơn hàng, vì vậy database cũng chặn dòng hàng khác chợ. Backend vẫn cần kiểm tra trạng thái sạp/sản phẩm và tồn kho.
 6. Chi tiết đơn lưu tên sản phẩm, đơn vị tính, đơn giá tại thời điểm mua, số lượng và ghi chú.
 7. Chỉ sản phẩm đã duyệt, còn hàng và thuộc sạp đã duyệt mới được đặt. Backend kiểm tra `status`, `is_in_stock`, `stock_quantity` và trạng thái sạp.
 8. BQL là bên phân công người đi chợ hộ; `orders.assigned_by` lưu tài khoản thực hiện phân công.
@@ -253,6 +253,6 @@ erDiagram
 
 - ERD dùng đúng tên tiếng Anh và giá trị role/status trong SQL và backend, tránh song song hai bộ enum tiếng Việt/tiếng Anh.
 - `stall_applications` và `complaint_images` là bảng thực tế trong SQL nên phải xuất hiện trong ERD.
-- `order_items.market_id` được bổ sung để enforce cùng chợ qua composite foreign key. Backend cần truyền market_id của đơn khi insert từng dòng.
+- `order_items.market_id` được bổ sung và khóa ngoại ghép gắn dòng hàng với chợ của đơn; trigger `check_order_item_market()` kiểm tra sản phẩm/sạp cũng thuộc chợ đó. Backend cần truyền market_id của đơn khi insert từng dòng.
 - Cột mới `is_in_stock` bổ sung cho cờ còn hàng; `stock_quantity` vẫn giữ để theo dõi tồn kho.
 - Khi thêm các cột mới vào database đã tồn tại, dùng migration riêng thay vì chạy lại schema tạo bảng từ đầu.
