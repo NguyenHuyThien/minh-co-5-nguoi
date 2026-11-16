@@ -1,3 +1,26 @@
+-- 0. NGUOI DUNG MAU
+INSERT INTO users (
+    id, full_name, email, password_hash, role
+)
+VALUES
+(
+    'aaaaaaaa-1111-1111-1111-111111111111',
+    'Nguoi dang ky mau',
+    'applicant@example.com',
+    'SEED_ONLY_NOT_LOGIN',
+    'stall_owner'
+),
+(
+    'cccccccc-1111-1111-1111-111111111111',
+    'Khach hang mau',
+    'customer@example.com',
+    'SEED_ONLY_NOT_LOGIN',
+    'customer'
+)
+ON CONFLICT (id) DO UPDATE SET
+    full_name = EXCLUDED.full_name,
+    email = EXCLUDED.email,
+    role = EXCLUDED.role;
 -- 1. CHỢ
 INSERT INTO markets (id, name, address, description, latitude, longitude)
 VALUES
