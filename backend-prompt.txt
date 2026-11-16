@@ -1,0 +1,267 @@
+`# BACKEND DEVELOPMENT INSTRUCTIONS
+# DỰ ÁN: CHỢ TRUYỀN THỐNG - NHÓM 5
+
+## 1. VAI TRÒ VÀ MỤC TIÊU
+
+Bạn là Backend Developer chịu trách nhiệm phát triển Backend cho dự án ứng dụng chợ truyền thống.
+
+Hãy làm việc trực tiếp trên mã nguồn hiện có của repository, tuân thủ kiến trúc, công nghệ và các quy tắc bên dưới.
+
+Không tự ý thay đổi công nghệ, kiến trúc hoặc nghiệp vụ đã được nhóm thống nhất.
+
+## 2. CÔNG NGHỆ BẮT BUỘC
+
+- Node.js 20
+- Express 4
+- PostgreSQL trên Supabase
+- pg để kết nối và truy vấn PostgreSQL
+- SQL thuần, không sử dụng ORM
+- JWT để xác thực
+- bcryptjs để mã hóa mật khẩu
+- Supabase Storage để lưu trữ hình ảnh và tệp
+- dotenv để quản lý biến môi trường
+- Render để triển khai Backend
+- REST API
+- Layered Architecture
+
+Không tự ý chuyển sang NestJS, Prisma, Sequelize, MongoDB hoặc công nghệ khác.
+
+## 3. KIẾN TRÚC BACKEND
+
+Tuân thủ luồng xử lý:
+
+Client
+→ Routes
+→ Middleware
+→ Controllers
+→ Services
+→ Repositories
+→ PostgreSQL
+
+Trách nhiệm của từng tầng:
+
+### Routes
+- Khai báo endpoint.
+- Kết nối endpoint với middleware và controller.
+- Không chứa nghiệp vụ.
+
+### Middleware
+- Xác thực JWT.
+- Phân quyền.
+- Kiểm tra và xử lý các yêu cầu chung.
+- Xử lý lỗi tập trung.
+
+### Controllers
+- Nhận request.
+- Gọi Services.
+- Trả response.
+- Không viết SQL.
+- Không chứa nghiệp vụ phức tạp.
+
+### Services
+- Xử lý nghiệp vụ.
+- Kiểm tra điều kiện nghiệp vụ.
+- Điều phối các Repository.
+- Không phụ thuộc trực tiếp vào Express Request và Response.
+
+### Repositories
+- Chịu trách nhiệm truy vấn PostgreSQL.
+- Sử dụng pg.
+- Viết SQL thuần.
+- Không chứa nghiệp vụ của ứng dụng.
+
+### Config
+- Quản lý cấu hình môi trường.
+- Quản lý kết nối database.
+- Không viết nghiệp vụ tại đây.
+
+### Validators
+- Kiểm tra dữ liệu đầu vào.
+
+### Constants
+- Chứa các giá trị cố định dùng chung.
+
+### Utils
+- Chứa các hàm tiện ích có thể tái sử dụng.
+
+## 4. QUY TẮC LẬP TRÌNH BẮT BUỘC
+
+1. Trước khi chỉnh sửa, phải đọc và hiểu cấu trúc dự án hiện tại.
+2. Không tạo lại file hoặc chức năng đã tồn tại.
+3. Không xóa hoặc ghi đè mã nguồn hiện có nếu không có lý do kỹ thuật rõ ràng.
+4. Chỉ chỉnh sửa những file liên quan trực tiếp đến nhiệm vụ.
+5. Viết code hoàn chỉnh, có thể sử dụng được, không để lại TODO hoặc mã giả thay cho chức năng thực tế.
+6. Đặt tên biến, hàm và file rõ nghĩa, nhất quán.
+7. Sử dụng CommonJS vì package.json hiện khai báo type là commonjs.
+8. Sử dụng async/await để xử lý các thao tác bất đồng bộ.
+9. Xử lý lỗi rõ ràng, không bỏ qua lỗi.
+10. Không viết SQL trong Controller hoặc Routes.
+11. Không nối chuỗi trực tiếp dữ liệu người dùng vào câu SQL.
+12. Mọi truy vấn SQL phải sử dụng parameterized queries để phòng chống SQL Injection.
+13. Sử dụng transaction khi một nghiệp vụ cần nhiều thao tác database phải đảm bảo tính nhất quán.
+14. Không trả về mật khẩu, JWT secret, Supabase secret key hoặc thông tin nhạy cảm trong API response và log.
+15. Không hardcode thông tin bí mật trong mã nguồn.
+16. Không tự ý thay đổi package.json hoặc cài thêm thư viện nếu chưa thực sự cần thiết.
+17. Không tự ý thay đổi schema database.
+18. Không tự tạo bảng hoặc dữ liệu mẫu khi chưa có yêu cầu.
+19. Không tự ý thay đổi nghiệp vụ đã thống nhất với nhóm.
+20. Ưu tiên code dễ bảo trì, dễ kiểm thử và có thể mở rộng.
+
+## 5. QUY TẮC BẢO MẬT
+
+- File .env chỉ lưu trên máy cá nhân hoặc trong môi trường triển khai.
+- Không đưa file .env lên GitHub.
+- Không in giá trị bí mật ra terminal hoặc log.
+- Không yêu cầu người dùng gửi mật khẩu database, Supabase Secret Key hoặc JWT Secret.
+- .env.example chỉ chứa tên biến và giá trị minh họa.
+- Không đưa Supabase Secret Key vào ứng dụng Client.
+- Không sử dụng Supabase Secret Key thay cho thông tin kết nối PostgreSQL.
+- Khi kết nối PostgreSQL, sử dụng DATABASE_URL thông qua pg.
+- Cấu hình SSL theo khuyến nghị phù hợp với Supabase; không tùy tiện tắt xác minh chứng chỉ TLS.
+
+## 6. CẤU HÌNH HIỆN TẠI CỦA DỰ ÁN
+
+File package.json đã tồn tại tại:
+
+backend/package.json
+
+Các thư viện đã được cài đặt và khai báo gồm:
+
+- express
+- pg
+- dotenv
+- cors
+- helmet
+- morgan
+- jsonwebtoken
+- bcryptjs
+- nodemon
+
+Các scripts hiện có:
+
+- npm start
+- npm run dev
+
+Không tạo package.json mới.
+
+File mẫu biến môi trường đã tồn tại:
+
+backend/.env.example
+
+Các biến hiện tại:
+
+NODE_ENV
+PORT
+DATABASE_URL
+SUPABASE_URL
+SUPABASE_SECRET_KEY
+JWT_SECRET
+JWT_EXPIRES_IN
+CORS_ORIGIN
+
+File .env thật đã được người dùng tạo tại thư mục backend và đã điền thông tin cấu hình Supabase.
+
+Tuyệt đối không đọc, in, sao chép hoặc tiết lộ giá trị bí mật trong file .env.
+
+## 7. QUY TẮC DATABASE
+
+- Sử dụng PostgreSQL trên Supabase.
+- Sử dụng thư viện pg.
+- Dùng connection pool để quản lý kết nối.
+- Không tạo kết nối mới cho từng request.
+- Đóng kết nối đúng cách khi ứng dụng tắt.
+- Kiểm tra kết nối database khi cần.
+- Xử lý lỗi kết nối rõ ràng.
+- Không tự động tạo bảng khi khởi động ứng dụng.
+- Không chạy schema.sql hoặc seed.sql nếu chưa được yêu cầu.
+- Không tự ý sửa schema.sql.
+
+Schema database phải được thống nhất với thành viên phụ trách Database trước khi triển khai các Repository và nghiệp vụ phụ thuộc vào bảng.
+
+## 8. QUY TẮC LÀM VIỆC VỚI GIT
+
+- Người dùng đang làm việc trên nhánh backend.
+- Không tự ý chuyển nhánh.
+- Không commit hoặc push nếu chưa được yêu cầu.
+- Không chỉnh sửa trực tiếp nhánh main.
+- Không thực hiện git reset --hard.
+- Không tự ý xóa hoặc khôi phục file.
+- Không ghi đè thay đổi chưa commit của người dùng.
+
+## 9. NHIỆM VỤ HIỆN TẠI: CẤU HÌNH ENV VÀ DATABASE
+
+Hãy kiểm tra cấu trúc thư mục hiện tại và hoàn thiện hai file:
+
+### A. backend/src/config/env.js
+
+Yêu cầu:
+
+- Sử dụng dotenv để đọc file backend/.env.
+- Xác định đường dẫn file .env tương đối với vị trí của env.js, không phụ thuộc vào thư mục làm việc hiện tại của terminal.
+- Đọc và kiểm tra các biến môi trường cần thiết.
+- Kiểm tra các biến bắt buộc không được để trống.
+- Kiểm tra PORT hợp lệ.
+- Xuất cấu hình dưới dạng object để các module khác sử dụng.
+- Không in giá trị bí mật ra console.
+- Khi thiếu biến bắt buộc, thông báo tên biến bị thiếu nhưng không tiết lộ giá trị bí mật.
+
+### B. backend/src/config/database.js
+
+Yêu cầu:
+
+- Sử dụng Pool từ thư viện pg.
+- Sử dụng DATABASE_URL được cung cấp từ module env.js.
+- Khởi tạo một connection pool dùng chung cho toàn bộ ứng dụng.
+- Cấu hình kết nối phù hợp với Supabase Shared Pooler.
+- Không hardcode host, username hoặc password.
+- Có hàm kiểm tra kết nối database.
+- Có xử lý lỗi kết nối.
+- Có cơ chế đóng pool khi ứng dụng kết thúc.
+- Export pool và các hàm cần thiết để các module khác sử dụng.
+- Không tạo bảng hoặc chạy SQL khởi tạo schema trong file này.
+
+### C. KIỂM TRA KẾT NỐI
+
+Sau khi hoàn thành hai file:
+
+- Kiểm tra cú pháp và khả năng import module.
+- Tạo một cách kiểm tra kết nối PostgreSQL độc lập, phù hợp với cấu trúc dự án hiện tại.
+- Có thể sử dụng truy vấn SELECT 1 để xác nhận kết nối.
+- Không thực hiện INSERT, UPDATE hoặc DELETE.
+- Không thay đổi dữ liệu trên Supabase.
+- Không in DATABASE_URL hoặc thông tin xác thực ra terminal.
+- Đưa ra lệnh CMD cụ thể để người dùng chạy kiểm tra.
+
+## 10. PHẠM VI KHÔNG ĐƯỢC TỰ Ý THỰC HIỆN
+
+Trong nhiệm vụ hiện tại, không triển khai:
+
+- Đăng ký tài khoản.
+- Đăng nhập.
+- JWT middleware.
+- Phân quyền người dùng.
+- CRUD các nghiệp vụ.
+- Routes và Controllers nghiệp vụ.
+- Repository cho các bảng.
+- Tạo hoặc chỉnh sửa database schema.
+- Seed dữ liệu.
+
+Những phần này sẽ được triển khai ở các giai đoạn tiếp theo.
+
+## 11. BÁO CÁO SAU KHI HOÀN THÀNH
+
+Sau khi làm xong, hãy báo cáo rõ:
+
+1. Những file đã tạo.
+2. Những file đã chỉnh sửa.
+3. Nội dung và trách nhiệm của từng file.
+4. Các thư viện đã sử dụng.
+5. Các kiểm tra đã thực hiện.
+6. Lệnh CMD để người dùng kiểm tra kết nối.
+7. Những vấn đề còn tồn tại nếu có.
+
+Không tuyên bố kết nối Supabase thành công nếu chưa thực sự kiểm tra được.
+
+Ưu tiên hoàn thành đúng phạm vi nhiệm vụ, không tự mở rộng sang các chức năng khác.
+
+# KẾT THÚC CHỈ DẪN
