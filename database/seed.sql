@@ -213,7 +213,7 @@ INSERT INTO complaint_images (
 VALUES (
  '12121212-1212-1212-1212-121212121212',
  'ffffffff-1111-1111-1111-111111111111',
- 'https://example.com/complaint-image.jpg'
+ 'https://placehold.co/600x400?text=Sample+Complaint+Image'
 )
 ON CONFLICT (id) DO UPDATE SET
  image_url = EXCLUDED.image_url;
@@ -233,3 +233,16 @@ ON CONFLICT (id) DO UPDATE SET
  old_status = EXCLUDED.old_status,
  new_status = EXCLUDED.new_status,
  note = EXCLUDED.note;
+
+
+-- 11. LICH SU GIA MAU
+INSERT INTO price_history (id, product_id, old_price, new_price, effective_at)
+VALUES (
+ '14141414-1414-1414-1414-141414141414',
+ 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+ 140000, 150000, NOW()
+)
+ON CONFLICT (id) DO UPDATE SET
+ old_price = EXCLUDED.old_price,
+ new_price = EXCLUDED.new_price,
+ effective_at = EXCLUDED.effective_at;
