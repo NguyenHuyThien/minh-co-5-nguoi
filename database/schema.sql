@@ -228,3 +228,42 @@ CREATE INDEX idx_complaints_order
 
 CREATE INDEX idx_history_order
     ON order_status_history(order_id);
+-- BANG NGUOI DUNG
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    full_name VARCHAR(150) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    phone VARCHAR(20) UNIQUE,
+    role VARCHAR(30) NOT NULL DEFAULT 'customer'
+        CHECK (role IN ('customer', 'shopper', 'stall_owner', 'admin')),
+    status VARCHAR(20) NOT NULL DEFAULT 'active'
+        CHECK (status IN ('active', 'locked')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- LIEN KET CAC BANG VOI USERS
+ALTER TABLE stalls
+ADD CONSTRAINT fk_stalls_owner
+FOREIGN KEY (owner_id) REFERENCES users(id);
+
+ALTER TABLE stall_applications
+ADD CONSTRAINT fk_applications_applicant
+FOREIGN KEY (applicant_id) REFERENCES users(id);
+
+ALTER TABLE orders
+ADD CONSTRAINT fk_orders_customer
+FOREIGN KEY (customer_id) REFERENCES users(id);
+
+ALTER TABLE orders
+ADD CONSTRAINT fk_orders_shopper
+FOREIGN KEY (shopper_id) REFERENCES users(id);
+
+ALTER TABLE complaints
+ADD CONSTRAINT fk_complaints_customer
+FOREIGN KEY (customer_id) REFERENCES users(id);
+
+ALTER TABLE order_status_history
+ADD CONSTRAINT fk_history_user
+FOREIGN KEY (changed_by) REFERENCES users(id);
