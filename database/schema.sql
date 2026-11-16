@@ -254,3 +254,35 @@ BEFORE INSERT OR UPDATE OF order_id, product_id, stall_id
 ON order_items
 FOR EACH ROW
 EXECUTE FUNCTION check_order_item_market();
+
+
+-- Keep the availability flag consistent with stock quantity.
+CREATE OR REPLACE FUNCTION sync_product_stock_flag()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.is_in_stock := (NEW.stock_quantity > 0);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_sync_product_stock_flag ON products;
+CREATE TRIGGER trg_sync_product_stock_flag
+BEFORE INSERT OR UPDATE OF stock_quantity
+ON products FOR EACH ROW EXECUTE FUNCTION sync_product_stock_flag();
+
+-- Record every product price change automatically.
+CREATE OR REPLACE FUNCTION record_product_price_change()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.price IS DISTINCT FROM OLD.price THEN
+        INSERT INTO price_history (product_id, old_price, new_price, effective_at)
+        VALUES (NEW.id, OLD.price, NEW.price, NOW());
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_record_product_price_change ON products;
+CREATE TRIGGER trg_record_product_price_change
+AFTER UPDATE OF price
+ON products FOR EACH ROW EXECUTE FUNCTION record_product_price_change();
