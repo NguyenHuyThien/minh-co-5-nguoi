@@ -225,3 +225,32 @@ CREATE INDEX idx_order_items_order ON order_items(order_id);
 CREATE INDEX idx_complaints_order ON complaints(order_id);
 CREATE INDEX idx_history_order ON order_status_history(order_id);
 CREATE INDEX idx_price_history_product_time ON price_history(product_id, effective_at DESC);
+
+
+-- Enforce that every ordered product's stall belongs to the order's market.
+CREATE OR REPLACE FUNCTION check_order_item_market()
+RETURNS TRIGGER AS $$
+DECLARE
+    order_market UUID;
+    product_market UUID;
+BEGIN
+    SELECT market_id INTO order_market
+    FROM orders WHERE id = NEW.order_id;
+
+    SELECT s.market_id INTO product_market
+    FROM products p
+    JOIN stalls s ON s.id = p.stall_id
+    WHERE p.id = NEW.product_id AND p.stall_id = NEW.stall_id;
+
+    IF order_market IS NULL OR product_market IS NULL OR order_market <> product_market THEN
+        RAISE EXCEPTION 'Sản phẩm và đơn hàng phải thuộc cùng một chợ';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_check_order_item_market
+BEFORE INSERT OR UPDATE OF order_id, product_id, stall_id
+ON order_items
+FOR EACH ROW
+EXECUTE FUNCTION check_order_item_market();
