@@ -39,7 +39,7 @@ CREATE TABLE users (
     password_hash TEXT NOT NULL,
     phone VARCHAR(20) UNIQUE,
     role VARCHAR(30) NOT NULL DEFAULT 'customer'
-        CHECK (role IN ('customer', 'shopper', 'stall_owner', 'admin')),
+        CHECK (role IN ('customer', 'shopper', 'merchant', 'admin')),
     status VARCHAR(20) NOT NULL DEFAULT 'active'
         CHECK (status IN ('active', 'locked')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
