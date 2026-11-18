@@ -33,7 +33,7 @@ async function uploadToStorage(objectPath, fileBuffer, mimeType) {
     method: 'POST',
     headers: {
       apikey: config.SUPABASE_SECRET_KEY,
-      Authorization: `Bearer ${config.SUPABASE_SECRET_KEY}`,
+
       'Content-Type': mimeType,
       'x-upsert': 'false',
       'cache-control': '3600',
@@ -56,7 +56,7 @@ async function removeFromStorage(objectPath) {
     method: 'DELETE',
     headers: {
       apikey: config.SUPABASE_SECRET_KEY,
-      Authorization: `Bearer ${config.SUPABASE_SECRET_KEY}`,
+
     },
   });
 }
