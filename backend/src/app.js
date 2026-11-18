@@ -8,6 +8,7 @@ const morgan = require('morgan');
 
 const { config } = require('./config/env');
 const authRoutes = require('./routes/auth.routes');
+const productImageRoutes = require('./routes/product-image.routes');
 const errorMiddleware = require('./middleware/error.middleware');
 
 const app = express();
@@ -20,6 +21,7 @@ app.use(morgan('dev'));
 
 // Register routes
 app.use('/api/auth', authRoutes);
+app.use('/api/products', productImageRoutes);
 
 // Centralized error handling
 app.use(errorMiddleware);
