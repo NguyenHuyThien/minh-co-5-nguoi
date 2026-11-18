@@ -68,6 +68,7 @@ const config = {
   DATABASE_URL: process.env.DATABASE_URL || '',
   SUPABASE_URL: process.env.SUPABASE_URL || '',
   SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY || '',
+  STORAGE_BUCKET: process.env.STORAGE_BUCKET || 'product-images',
   JWT_SECRET: process.env.JWT_SECRET || '',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '',
   CORS_ORIGIN: process.env.CORS_ORIGIN || '*',
