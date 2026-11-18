@@ -32,7 +32,12 @@ VALUES
 ('22222222-2222-2222-2222-222222222222',
  'Chợ Tân Định', 'Đường Hai Bà Trưng, Quận 1, TP. Hồ Chí Minh',
  'Chợ truyền thống Tân Định',
- 10.7900, 106.6900)
+ 10.7900, 106.6900),
+
+('33333333-3333-3333-3333-333333333333',
+ 'Chợ Bình Tây', '57A Tháp Mười, Phường 2, Quận 6, TP. Hồ Chí Minh',
+ 'Chợ truyền thống Bình Tây tại Quận 6, TP. Hồ Chí Minh',
+ NULL, NULL)
 ON CONFLICT (id) DO UPDATE SET
  name = EXCLUDED.name,
  address = EXCLUDED.address,
