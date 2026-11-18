@@ -65,8 +65,8 @@ async function uploadProductImage(req, res, next) {
   let uploadedPath;
 
   try {
-    const { id: productId } = req.params;
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(productId)) {
+    if (!config.SUPABASE_URL || !config.SUPABASE_SECRET_KEY) {\n      const error = new Error('Backend chưa cấu hình SUPABASE_URL hoặc SUPABASE_SECRET_KEY');\n      error.status = 500;\n      throw error;\n    }\n\n    const { id: productId } = req.params;
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(productId)) {
       return res.status(400).json({ error: 'Mã sản phẩm không hợp lệ' });
     }
 
