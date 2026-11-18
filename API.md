@@ -32,6 +32,15 @@ Base URL: /api
 - PATCH /products/:id/status
 - DELETE /products/:id
 
+### Upload ảnh sản phẩm
+- PUT /products/:id/image
+- Header: Authorization: Bearer <JWT>
+- Content-Type: image/jpeg | image/png | image/webp
+- Body: dữ liệu ảnh dạng binary (tối đa 5 MB)
+- Quyền: admin hoặc chủ sạp sở hữu sản phẩm
+- Response: product_id, image_url
+- Ảnh được lưu trong Supabase Storage bucket `product-images`; URL được cập nhật vào `products.image_url`.
+
 ## 5. ORDERS – Quản lý đơn hàng
 - GET /orders
 - GET /orders/:id
