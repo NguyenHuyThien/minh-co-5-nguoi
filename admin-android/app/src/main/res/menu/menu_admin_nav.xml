@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_duyet_ho_so"
+            android:icon="@android:drawable/ic_menu_agenda"
+            android:title="Duyệt hồ sơ gian hàng" />
+        <item
+            android:id="@+id/nav_so_do_cho"
+            android:icon="@android:drawable/ic_dialog_map"
+            android:title="Quản lý sơ đồ chợ" />
+        <item
+            android:id="@+id/nav_tieu_thuong"
+            android:icon="@android:drawable/ic_menu_myplaces"
+            android:title="Quản lý tiểu thương" />
+        <item
+            android:id="@+id/nav_duyet_mat_hang"
+            android:icon="@android:drawable/ic_menu_gallery"
+            android:title="Duyệt mặt hàng" />
+        <item
+            android:id="@+id/nav_don_di_cho"
+            android:icon="@android:drawable/ic_menu_directions"
+            android:title="Theo dõi đơn đi chợ hộ" />
+        <item
+            android:id="@+id/nav_khieu_nai"
+            android:icon="@android:drawable/ic_dialog_alert"
+            android:title="Xử lý khiếu nại" />
+        <item
+            android:id="@+id/nav_bao_cao"
+            android:icon="@android:drawable/ic_menu_sort_by_size"
+            android:title="Báo cáo thống kê" />
+    </group>
+</menu>
