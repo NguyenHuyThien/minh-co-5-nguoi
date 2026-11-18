@@ -52,5 +52,6 @@ local.properties
 .pub-cache/
 .pub/
 thongtin.txt
-prompt.txt
+backend-prompt.txt
 baocao.txt
+test.txt
