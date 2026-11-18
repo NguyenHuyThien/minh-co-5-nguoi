@@ -8,7 +8,7 @@ VALUES
     'Nguoi dang ky mau',
     'applicant@example.com',
     'SEED_ONLY_NOT_LOGIN',
-    'stall_owner'
+    'merchant'
 ),
 (
     'cccccccc-1111-1111-1111-111111111111',

@@ -3,6 +3,9 @@
 
 const { pool } = require('../config/database');
 
+// Whitelist of columns allowed for user creation
+const ALLOWED_CREATE_FIELDS = ['email', 'password_hash', 'full_name', 'phone', 'role', 'status'];
+
 // Find a user by email
 async function findByEmail(email) {
   const query = 'SELECT * FROM users WHERE email = $1';
@@ -17,10 +20,10 @@ async function findById(id) {
   return rows[0];
 }
 
-// Create a new user
+// Create a new user (only whitelisted columns are accepted)
 async function create(user) {
-  const fields = Object.keys(user);
-  const values = Object.values(user);
+  const fields = Object.keys(user).filter((key) => ALLOWED_CREATE_FIELDS.includes(key));
+  const values = fields.map((key) => user[key]);
   const placeholders = fields.map((_, idx) => `$${idx + 1}`).join(', ');
   const query = `INSERT INTO users (${fields.join(', ')}) VALUES (${placeholders}) RETURNING *`;
   const { rows } = await pool.query(query, values);

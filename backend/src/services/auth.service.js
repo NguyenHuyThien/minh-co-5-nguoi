@@ -10,11 +10,18 @@ const { USER_ROLES } = require('../constants/roles');
 const ALLOWED_REGISTRATION_ROLES = [USER_ROLES.CUSTOMER, USER_ROLES.MERCHANT, USER_ROLES.SHOPPER];
 
 async function register(data) {
-  const { email, password, role, ...rest } = data;
+  const { email, password, role, full_name, phone } = data;
 
   // Validate role
   if (!ALLOWED_REGISTRATION_ROLES.includes(role)) {
     throw new Error('Invalid role for registration');
+  }
+
+  // full_name is required by the database schema
+  if (!full_name || String(full_name).trim() === '') {
+    const err = new Error('Full name is required');
+    err.status = 400;
+    throw err;
   }
 
   // Check email existence
@@ -28,13 +35,22 @@ async function register(data) {
   // Hash password
   const passwordHash = await hashPassword(password);
 
-  // Set initial status based on role
-  let status = 'active';
-  if (role === USER_ROLES.MERCHANT) {
-    status = 'pending'; // requires admin approval
+  // Users always start as 'active' (database only allows 'active' | 'locked').
+  // Merchant approval is tracked via the stall_applications table, not users.status.
+  const userPayload = {
+    email,
+    password_hash: passwordHash,
+    role,
+    status: 'active',
+    full_name: full_name.trim(),
+  };
+
+  // Include phone only if provided
+  if (phone && String(phone).trim() !== '') {
+    userPayload.phone = String(phone).trim();
   }
 
-  const user = await authRepository.create({ email, password_hash: passwordHash, role, status, ...rest });
+  const user = await authRepository.create(userPayload);
   // Remove secret fields before returning
   const { password_hash, ...safeUser } = user;
   return safeUser;

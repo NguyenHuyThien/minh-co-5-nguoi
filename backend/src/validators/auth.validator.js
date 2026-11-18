@@ -7,8 +7,11 @@ function validateEmail(email) {
 }
 
 function validateRegister(req, res, next) {
-  const { email, password, role } = req.body;
+  const { email, password, role, full_name } = req.body;
   const errors = [];
+
+  if (!full_name || String(full_name).trim() === '') errors.push('Full name is required');
+
   if (!email) errors.push('Email is required');
   else if (!validateEmail(email)) errors.push('Invalid email format');
 
