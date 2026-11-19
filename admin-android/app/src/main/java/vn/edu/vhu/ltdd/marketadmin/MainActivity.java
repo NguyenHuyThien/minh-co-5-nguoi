@@ -38,10 +38,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Mặc định mở trang đầu tiên (Duyệt hồ sơ gian hàng) khi mới vào app
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new DuyetHoSoFragment())
+                    .replace(R.id.fragment_container, new SoDoChoFragment())
                     .commit();
-            navigationView.setCheckedItem(R.id.nav_duyet_ho_so);
-            toolbar.setTitle("Duyệt hồ sơ gian hàng");
+            navigationView.setCheckedItem(R.id.nav_so_do_cho);
+            toolbar.setTitle("Quản lý sơ đồ chợ");
         }
     }
 
