@@ -13,7 +13,7 @@ import java.util.List;
 public class SapHangAdapter extends RecyclerView.Adapter<SapHangAdapter.SapViewHolder> {
 
     private List<SapHang> listSap;
-    private OnSapClickListener listener;
+    private final OnSapClickListener listener;
 
     public interface OnSapClickListener {
         void onSapClick(SapHang sap);
@@ -41,7 +41,26 @@ public class SapHangAdapter extends RecyclerView.Adapter<SapHangAdapter.SapViewH
         SapHang sap = listSap.get(position);
         holder.tvMaSap.setText("Sạp " + sap.maSap);
         holder.tvKhuVucLabel.setText(sap.khuVuc);
-        holder.tvChuSap.setText(sap.trangThai == 0 ? "Chưa có tiểu thương thuê" : "Chủ sạp: " + sap.tenTieuThuong);
+
+        TieuThuong ttDangKy = MarketRepository.timTieuThuongTheoSap(sap.maSap);
+        if (sap.trangThai == 2 && sap.lyDoKhoa != null && !sap.lyDoKhoa.isEmpty()) {
+            holder.tvChuSap.setText("Khóa mặt bằng: " + sap.lyDoKhoa);
+            holder.tvChuSap.setTextColor(Color.parseColor("#B91C1C"));
+        } else if (ttDangKy != null) {
+            if (ttDangKy.trangThai == -1) {
+                holder.tvChuSap.setText("Chủ sạp: " + ttDangKy.hoTen + " • Đã khóa gian hàng");
+                holder.tvChuSap.setTextColor(Color.parseColor("#B91C1C"));
+            } else if (ttDangKy.trangThai == 0) {
+                holder.tvChuSap.setText("Chủ sạp: " + ttDangKy.hoTen + " • Tạm ngưng");
+                holder.tvChuSap.setTextColor(Color.parseColor("#B45309"));
+            } else {
+                holder.tvChuSap.setText("Chủ sạp: " + ttDangKy.hoTen + " (" + ttDangKy.maTT + ")");
+                holder.tvChuSap.setTextColor(Color.parseColor("#64748B"));
+            }
+        } else {
+            holder.tvChuSap.setText("Chưa có tiểu thương đăng ký");
+            holder.tvChuSap.setTextColor(Color.parseColor("#64748B"));
+        }
 
         switch (sap.khuVuc) {
             case "Rau củ":
