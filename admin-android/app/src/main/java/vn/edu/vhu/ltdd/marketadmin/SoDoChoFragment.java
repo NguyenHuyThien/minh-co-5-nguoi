@@ -193,30 +193,96 @@ public class SoDoChoFragment extends Fragment {
     private void hienDialogChiTietSap(SapHang sap) {
         if (getContext() == null) return;
 
-        String[] cacTrangThai = {"Đã thuê (Đang hoạt động)", "Sạp trống", "Tạm khóa"};
-        int mucHienTai = (sap.trangThai == 1) ? 0 : (sap.trangThai == 0) ? 1 : 2;
+        TieuThuong ttDangKy = MarketRepository.timTieuThuongTheoSap(sap.maSap);
+
+        StringBuilder thongTin = new StringBuilder();
+        if (ttDangKy != null) {
+            String trangThaiChuSap;
+            if (ttDangKy.trangThai == 1) {
+                trangThaiChuSap = "Đang hoạt động";
+            } else if (ttDangKy.trangThai == 0) {
+                trangThaiChuSap = "Tạm ngưng";
+            } else {
+                trangThaiChuSap = "Bị khóa tài khoản";
+            }
+
+            thongTin.append("Chủ sạp: ").append(ttDangKy.hoTen).append(" (").append(ttDangKy.maTT).append(")\n");
+            thongTin.append("Số điện thoại: ").append(ttDangKy.soDienThoai).append("\n");
+            thongTin.append("Tình trạng tiểu thương: ").append(trangThaiChuSap).append("\n");
+
+            if (ttDangKy.trangThai != 1 && ttDangKy.lyDo != null && !ttDangKy.lyDo.isEmpty()) {
+                thongTin.append("Lý do (tiểu thương): ").append(ttDangKy.lyDo).append("\n");
+            }
+        } else {
+            thongTin.append("Chủ sạp: Chưa có tiểu thương đăng ký\n");
+        }
+
+        String tenTrangThaiSap = sap.trangThai == 1 ? "Đã thuê" : (sap.trangThai == 0 ? "Sạp trống" : "Tạm khóa mặt bằng");
+        thongTin.append("\nTrạng thái vị trí sạp: ").append(tenTrangThaiSap);
+
+        if (sap.trangThai == 2 && sap.lyDoKhoa != null && !sap.lyDoKhoa.isEmpty()) {
+            thongTin.append("\nLý do khóa sạp: ").append(sap.lyDoKhoa);
+        }
+
+        String nutKhoa = (sap.trangThai == 2) ? "Mở khóa sạp" : "Tạm khóa sạp";
 
         AlertDialog dialog = new AlertDialog.Builder(getContext())
-                .setTitle("Sạp " + sap.maSap + " • " + sap.khuVuc)
-                .setSingleChoiceItems(cacTrangThai, mucHienTai, (d, which) -> {
-                    if (which == 0) {
-                        sap.trangThai = 1;
-                        if (sap.tenTieuThuong.equals("Trống")) sap.tenTieuThuong = "Tiểu thương mới";
-                    } else if (which == 1) {
-                        sap.trangThai = 0;
-                        sap.tenTieuThuong = "Trống";
+                .setTitle("Vị trí sạp " + sap.maSap + " • " + sap.khuVuc)
+                .setMessage(thongTin.toString())
+                .setPositiveButton(nutKhoa, (d, which) -> {
+                    if (sap.trangThai == 2) {
+                        MarketRepository.moKhoaSap(sap.maSap);
+                        locDanhSach();
+                        Toast.makeText(getContext(), "Đã mở khóa sạp " + sap.maSap, Toast.LENGTH_SHORT).show();
                     } else {
-                        sap.trangThai = -1;
+                        hienDialogNhapLyDoKhoaSap(sap);
                     }
-                    locDanhSach();
-                    d.dismiss();
-                    Toast.makeText(getContext(), "Đã cập nhật trạng thái sạp " + sap.maSap, Toast.LENGTH_SHORT).show();
                 })
-                .setNeutralButton("Xóa sạp", (d, which) -> xacNhanXoaSap(sap))
+                .setNeutralButton("Xóa sạp", (d, which) -> {
+                    if (ttDangKy != null) {
+                        Toast.makeText(getContext(), "Sạp đang có tiểu thương " + ttDangKy.hoTen + " đăng ký, không thể xóa!", Toast.LENGTH_LONG).show();
+                    } else {
+                        xacNhanXoaSap(sap);
+                    }
+                })
                 .setNegativeButton("Đóng", null)
                 .create();
 
         dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setTextColor(Color.parseColor("#DC2626")));
+        dialog.show();
+    }
+    private void hienDialogNhapLyDoKhoaSap(SapHang sap) {
+        if (getContext() == null) return;
+
+        LinearLayout layout = new LinearLayout(getContext());
+        layout.setOrientation(LinearLayout.VERTICAL);
+        int pad = (int) (20 * getResources().getDisplayMetrics().density);
+        layout.setPadding(pad, pad / 2, pad, 0);
+
+        EditText etLyDo = new EditText(getContext());
+        etLyDo.setHint("Nhập lý do tạm khóa mặt bằng sạp...");
+        etLyDo.setSingleLine(true);
+        layout.addView(etLyDo);
+
+        AlertDialog dialog = new AlertDialog.Builder(getContext())
+                .setTitle("Tạm khóa sạp " + sap.maSap)
+                .setView(layout)
+                .setPositiveButton("Xác nhận khóa", null)
+                .setNegativeButton("Hủy", null)
+                .create();
+
+        dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String lyDo = etLyDo.getText().toString().trim();
+            if (lyDo.isEmpty()) {
+                etLyDo.setError("Vui lòng nhập lý do khóa sạp");
+                return;
+            }
+            MarketRepository.tamKhoaSap(sap.maSap, lyDo);
+            locDanhSach();
+            Toast.makeText(getContext(), "Đã tạm khóa sạp " + sap.maSap, Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        }));
+
         dialog.show();
     }
 
