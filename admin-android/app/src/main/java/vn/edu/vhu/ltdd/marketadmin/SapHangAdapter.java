@@ -42,24 +42,31 @@ public class SapHangAdapter extends RecyclerView.Adapter<SapHangAdapter.SapViewH
         holder.tvMaSap.setText("Sạp " + sap.maSap);
         holder.tvKhuVucLabel.setText(sap.khuVuc);
 
-        TieuThuong ttDangKy = MarketRepository.timTieuThuongTheoSap(sap.maSap);
-        if (sap.trangThai == 2 && sap.lyDoKhoa != null && !sap.lyDoKhoa.isEmpty()) {
-            holder.tvChuSap.setText("Khóa mặt bằng: " + sap.lyDoKhoa);
+        if (sap.trangThai == 2) {
+            holder.tvChuSap.setText(sap.tenGianHang + " • Chủ: " + sap.tenTieuThuong);
+            holder.tvChuSap.setTextColor(Color.parseColor("#334155"));
+            holder.tvTrangThaiBadge.setText("Hoạt động");
+            holder.tvTrangThaiBadge.setTextColor(Color.parseColor("#15803D"));
+            holder.cardTrangThaiBadge.setCardBackgroundColor(Color.parseColor("#DCFCE7"));
+        } else if (sap.trangThai == 1) {
+            holder.tvChuSap.setText("Hồ sơ chờ duyệt: " + sap.tenGianHang + " (" + sap.tenTieuThuong + ")");
+            holder.tvChuSap.setTextColor(Color.parseColor("#B45309"));
+            holder.tvTrangThaiBadge.setText("Chờ duyệt");
+            holder.tvTrangThaiBadge.setTextColor(Color.parseColor("#B45309"));
+            holder.cardTrangThaiBadge.setCardBackgroundColor(Color.parseColor("#FEF3C7"));
+        } else if (sap.trangThai == -2) {
+            String chu = (sap.tenTieuThuong != null && !sap.tenTieuThuong.isEmpty()) ? "Chủ: " + sap.tenTieuThuong + " • " : "";
+            holder.tvChuSap.setText(chu + "Khóa: " + sap.lyDo);
             holder.tvChuSap.setTextColor(Color.parseColor("#B91C1C"));
-        } else if (ttDangKy != null) {
-            if (ttDangKy.trangThai == -1) {
-                holder.tvChuSap.setText("Chủ sạp: " + ttDangKy.hoTen + " • Đã khóa gian hàng");
-                holder.tvChuSap.setTextColor(Color.parseColor("#B91C1C"));
-            } else if (ttDangKy.trangThai == 0) {
-                holder.tvChuSap.setText("Chủ sạp: " + ttDangKy.hoTen + " • Tạm ngưng");
-                holder.tvChuSap.setTextColor(Color.parseColor("#B45309"));
-            } else {
-                holder.tvChuSap.setText("Chủ sạp: " + ttDangKy.hoTen + " (" + ttDangKy.maTT + ")");
-                holder.tvChuSap.setTextColor(Color.parseColor("#64748B"));
-            }
+            holder.tvTrangThaiBadge.setText("Tạm khóa");
+            holder.tvTrangThaiBadge.setTextColor(Color.parseColor("#B91C1C"));
+            holder.cardTrangThaiBadge.setCardBackgroundColor(Color.parseColor("#FEE2E2"));
         } else {
-            holder.tvChuSap.setText("Chưa có tiểu thương đăng ký");
+            holder.tvChuSap.setText("Sạp trống • Sẵn sàng đăng ký");
             holder.tvChuSap.setTextColor(Color.parseColor("#64748B"));
+            holder.tvTrangThaiBadge.setText("Sạp trống");
+            holder.tvTrangThaiBadge.setTextColor(Color.parseColor("#475569"));
+            holder.cardTrangThaiBadge.setCardBackgroundColor(Color.parseColor("#E2E8F0"));
         }
 
         switch (sap.khuVuc) {
@@ -79,20 +86,6 @@ public class SapHangAdapter extends RecyclerView.Adapter<SapHangAdapter.SapViewH
                 holder.tvEmojiKhuVuc.setText("🍳");
                 holder.cardIconBg.setCardBackgroundColor(Color.parseColor("#E0E7FF"));
                 break;
-        }
-
-        if (sap.trangThai == 1) {
-            holder.tvTrangThaiBadge.setText("Đã thuê");
-            holder.tvTrangThaiBadge.setTextColor(Color.parseColor("#15803D"));
-            holder.cardTrangThaiBadge.setCardBackgroundColor(Color.parseColor("#DCFCE7"));
-        } else if (sap.trangThai == 0) {
-            holder.tvTrangThaiBadge.setText("Sạp trống");
-            holder.tvTrangThaiBadge.setTextColor(Color.parseColor("#475569"));
-            holder.cardTrangThaiBadge.setCardBackgroundColor(Color.parseColor("#E2E8F0"));
-        } else {
-            holder.tvTrangThaiBadge.setText("Tạm khóa");
-            holder.tvTrangThaiBadge.setTextColor(Color.parseColor("#B91C1C"));
-            holder.cardTrangThaiBadge.setCardBackgroundColor(Color.parseColor("#FEE2E2"));
         }
 
         holder.itemView.setOnClickListener(v -> listener.onSapClick(sap));

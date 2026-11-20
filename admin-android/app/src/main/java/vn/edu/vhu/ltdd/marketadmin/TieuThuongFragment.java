@@ -15,8 +15,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -130,17 +128,12 @@ public class TieuThuongFragment extends Fragment {
     private void hienDialogChiTietTieuThuong(TieuThuong tt) {
         if (getContext() == null) return;
 
+        List<SapHang> dsSapSoHuu = MarketRepository.laySapCuaTieuThuong(tt.maTT);
+
         LinearLayout layout = new LinearLayout(getContext());
         layout.setOrientation(LinearLayout.VERTICAL);
         int pad = (int) (20 * getResources().getDisplayMetrics().density);
         layout.setPadding(pad, pad / 2, pad, 0);
-
-        TextView tvViTri = new TextView(getContext());
-        tvViTri.setText("Mã: " + tt.maTT + "  •  Vị trí: Sạp " + tt.maSap + " (" + tt.khuVuc + ")");
-        tvViTri.setTextColor(Color.parseColor("#0F766E"));
-        tvViTri.setTextSize(13f);
-        tvViTri.setPadding(0, 0, 0, 12);
-        layout.addView(tvViTri);
 
         EditText etHoTen = new EditText(getContext());
         etHoTen.setText(tt.hoTen);
@@ -155,66 +148,42 @@ public class TieuThuongFragment extends Fragment {
         etSdt.setSingleLine(true);
         layout.addView(etSdt);
 
-        TextView tvLabelTrangThai = new TextView(getContext());
-        tvLabelTrangThai.setText("Trạng thái gian hàng:");
-        tvLabelTrangThai.setTextColor(Color.parseColor("#334155"));
-        tvLabelTrangThai.setPadding(0, 14, 0, 4);
-        layout.addView(tvLabelTrangThai);
+        TextView tvDanhSachGian = new TextView(getContext());
+        tvDanhSachGian.setText("Danh sách gian hàng đang sở hữu (" + dsSapSoHuu.size() + "):");
+        tvDanhSachGian.setTextColor(Color.parseColor("#0F766E"));
+        tvDanhSachGian.setPadding(0, 16, 0, 8);
+        layout.addView(tvDanhSachGian);
 
-        RadioGroup radioGroup = new RadioGroup(getContext());
-        RadioButton rbHoatDong = new RadioButton(getContext());
-        rbHoatDong.setText("Mở / Đang hoạt động");
-        RadioButton rbTamNgung = new RadioButton(getContext());
-        rbTamNgung.setText("Tạm ngưng kinh doanh");
-        RadioButton rbKhoa = new RadioButton(getContext());
-        rbKhoa.setText("Khóa gian hàng");
-
-        radioGroup.addView(rbHoatDong);
-        radioGroup.addView(rbTamNgung);
-        radioGroup.addView(rbKhoa);
-        layout.addView(radioGroup);
-
-        EditText etLyDo = new EditText(getContext());
-        etLyDo.setHint("Nhập lý do khóa / tạm ngưng...");
-        etLyDo.setText(tt.lyDo != null ? tt.lyDo : "");
-        etLyDo.setSingleLine(true);
-        layout.addView(etLyDo);
-
-        if (tt.trangThai == 1) {
-            rbHoatDong.setChecked(true);
-            etLyDo.setVisibility(View.GONE);
-        } else if (tt.trangThai == 0) {
-            rbTamNgung.setChecked(true);
-            etLyDo.setVisibility(View.VISIBLE);
+        if (dsSapSoHuu.isEmpty()) {
+            TextView tvTrong = new TextView(getContext());
+            tvTrong.setText("Chưa có gian hàng nào được duyệt.");
+            tvTrong.setTextColor(Color.parseColor("#64748B"));
+            layout.addView(tvTrong);
         } else {
-            rbKhoa.setChecked(true);
-            etLyDo.setVisibility(View.VISIBLE);
+            for (SapHang sap : dsSapSoHuu) {
+                TextView tvItemSap = new TextView(getContext());
+                String trangThaiText = (sap.trangThai == -2) ? " [ĐÃ KHÓA: " + sap.lyDo + "]" : " [Đang hoạt động]";
+                tvItemSap.setText("• Sạp " + sap.maSap + " (" + sap.khuVuc + ") - " + sap.tenGianHang + trangThaiText + "\n   (Bấm vào dòng này để Khóa/Mở khóa gian hàng)");
+                tvItemSap.setTextColor(sap.trangThai == -2 ? Color.parseColor("#B91C1C") : Color.parseColor("#1E293B"));
+                tvItemSap.setPadding(0, 8, 0, 8);
+                tvItemSap.setOnClickListener(v -> hienDialogQuanLyMotGianHang(tt, sap));
+                layout.addView(tvItemSap);
+            }
         }
 
-        radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId == rbHoatDong.getId()) {
-                etLyDo.setVisibility(View.GONE);
-                etLyDo.setError(null);
-            } else {
-                etLyDo.setVisibility(View.VISIBLE);
-            }
-        });
-
         AlertDialog dialog = new AlertDialog.Builder(getContext())
-                .setTitle(tt.hoTen + " (" + tt.maSap + ")")
+                .setTitle("Hồ sơ tiểu thương • " + tt.maTT)
                 .setView(layout)
-                .setPositiveButton("Lưu cập nhật", null)
+                .setPositiveButton("Lưu thông tin", null)
                 .setNeutralButton("Lịch sử vi phạm (" + tt.lichSuViPham.size() + ")", (d, which) -> hienDialogLichSuViPham(tt))
-                .setNegativeButton("Thu hồi sạp", (d, which) -> xacNhanThuHoiSap(tt))
+                .setNegativeButton("Đóng", null)
                 .create();
 
         dialog.setOnShowListener(d -> {
-            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#DC2626"));
             dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setTextColor(Color.parseColor("#B45309"));
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
                 String hoTenMoi = etHoTen.getText().toString().trim();
                 String sdtMoi = etSdt.getText().toString().trim();
-                String lyDoMoi = etLyDo.getText().toString().trim();
 
                 if (hoTenMoi.isEmpty()) {
                     etHoTen.setError("Vui lòng nhập họ tên");
@@ -225,41 +194,91 @@ public class TieuThuongFragment extends Fragment {
                     return;
                 }
 
-                int trangThaiMoi;
-                if (rbHoatDong.isChecked()) {
-                    trangThaiMoi = 1;
-                    lyDoMoi = "";
-                } else if (rbTamNgung.isChecked()) {
-                    trangThaiMoi = 0;
-                    if (lyDoMoi.isEmpty()) {
-                        etLyDo.setError("Vui lòng nhập lý do tạm ngưng");
-                        return;
-                    }
-                } else {
-                    trangThaiMoi = -1;
-                    if (lyDoMoi.isEmpty()) {
-                        etLyDo.setError("Vui lòng nhập lý do khóa gian hàng");
-                        return;
-                    }
-                    if (tt.trangThai != -1) {
-                        String ngayHomNay = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
-                        tt.lichSuViPham.add(ngayHomNay + " - " + lyDoMoi + " - Khóa gian hàng");
+                tt.hoTen = hoTenMoi;
+                tt.soDienThoai = sdtMoi;
+                for (SapHang s : MarketRepository.dsSap) {
+                    if (s.maTT != null && s.maTT.equalsIgnoreCase(tt.maTT)) {
+                        s.tenTieuThuong = hoTenMoi;
+                        s.soDienThoai = sdtMoi;
                     }
                 }
 
-                tt.hoTen = hoTenMoi;
-                tt.soDienThoai = sdtMoi;
-                tt.trangThai = trangThaiMoi;
-                tt.lyDo = lyDoMoi;
-                MarketRepository.ganTieuThuongVaoSap(tt.maSap, hoTenMoi);
-
                 locDanhSach();
-                Toast.makeText(getContext(), "Đã cập nhật gian hàng " + tt.hoTen, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Đã cập nhật thông tin " + tt.hoTen, Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             });
         });
 
         dialog.show();
+    }
+
+    private void hienDialogQuanLyMotGianHang(TieuThuong tt, SapHang sap) {
+        if (getContext() == null) return;
+
+        if (sap.trangThai == -2) {
+            new AlertDialog.Builder(getContext())
+                    .setTitle("Mở khóa gian hàng " + sap.maSap)
+                    .setMessage("Gian hàng \"" + sap.tenGianHang + "\" đang bị khóa với lý do:\n" + sap.lyDo + "\n\nXác nhận mở khóa hoạt động lại?")
+                    .setPositiveButton("Mở khóa", (d, which) -> {
+                        MarketRepository.moKhoaSap(sap);
+                        locDanhSach();
+                        Toast.makeText(getContext(), "Đã mở khóa gian hàng " + sap.maSap, Toast.LENGTH_SHORT).show();
+                    })
+                    .setNeutralButton("Thu hồi sạp", (d, which) -> xacNhanThuHoiSap(sap))
+                    .setNegativeButton("Hủy", null)
+                    .show();
+        } else {
+            LinearLayout layout = new LinearLayout(getContext());
+            layout.setOrientation(LinearLayout.VERTICAL);
+            int pad = (int) (20 * getResources().getDisplayMetrics().density);
+            layout.setPadding(pad, pad / 2, pad, 0);
+
+            EditText etLyDo = new EditText(getContext());
+            etLyDo.setHint("Nhập lý do khóa gian hàng...");
+            etLyDo.setSingleLine(true);
+            layout.addView(etLyDo);
+
+            AlertDialog dialog = new AlertDialog.Builder(getContext())
+                    .setTitle("Khóa gian hàng " + sap.maSap)
+                    .setView(layout)
+                    .setPositiveButton("Khóa gian hàng", null)
+                    .setNeutralButton("Thu hồi sạp", (d, which) -> xacNhanThuHoiSap(sap))
+                    .setNegativeButton("Hủy", null)
+                    .create();
+
+            dialog.setOnShowListener(d -> {
+                dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setTextColor(Color.parseColor("#DC2626"));
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                    String lyDo = etLyDo.getText().toString().trim();
+                    if (lyDo.isEmpty()) {
+                        etLyDo.setError("Vui lòng nhập lý do khóa");
+                        return;
+                    }
+                    MarketRepository.khoaSap(sap, lyDo);
+                    String ngayHomNay = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
+                    tt.lichSuViPham.add(ngayHomNay + " - [Sạp " + sap.maSap + "] " + lyDo + " - Khóa gian hàng");
+                    locDanhSach();
+                    Toast.makeText(getContext(), "Đã khóa gian hàng " + sap.maSap, Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                });
+            });
+            dialog.show();
+        }
+    }
+
+    private void xacNhanThuHoiSap(SapHang sap) {
+        if (getContext() == null) return;
+
+        new AlertDialog.Builder(getContext())
+                .setTitle("Thu hồi sạp " + sap.maSap)
+                .setMessage("Chấm dứt hoạt động của gian hàng \"" + sap.tenGianHang + "\" và trả Sạp " + sap.maSap + " về trạng thái Sạp trống?")
+                .setPositiveButton("Thu hồi", (dialog, which) -> {
+                    MarketRepository.traSapVeTrong(sap);
+                    locDanhSach();
+                    Toast.makeText(getContext(), "Đã thu hồi và trả trống Sạp " + sap.maSap, Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
     }
 
     private void hienDialogLichSuViPham(TieuThuong tt) {
@@ -301,7 +320,7 @@ public class TieuThuongFragment extends Fragment {
         layout.addView(etHinhThucXuLy);
 
         AlertDialog dialog = new AlertDialog.Builder(getContext())
-                .setTitle("Lập biên bản vi phạm • " + tt.maSap)
+                .setTitle("Lập biên bản vi phạm • " + tt.maTT)
                 .setView(layout)
                 .setPositiveButton("Lưu biên bản", null)
                 .setNegativeButton("Hủy", null)
@@ -321,28 +340,13 @@ public class TieuThuongFragment extends Fragment {
 
             String ngayHomNay = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
             tt.lichSuViPham.add(ngayHomNay + " - " + noiDung + " - " + xuLy);
+            locDanhSach();
             Toast.makeText(getContext(), "Đã ghi nhận vi phạm cho " + tt.hoTen, Toast.LENGTH_SHORT).show();
             dialog.dismiss();
             hienDialogLichSuViPham(tt);
         }));
 
         dialog.show();
-    }
-
-    private void xacNhanThuHoiSap(TieuThuong tt) {
-        if (getContext() == null) return;
-
-        new AlertDialog.Builder(getContext())
-                .setTitle("Thu hồi gian hàng")
-                .setMessage("Chấm dứt hợp đồng của " + tt.hoTen + " và trả sạp " + tt.maSap + " về trạng thái Sạp trống?")
-                .setPositiveButton("Thu hồi", (dialog, which) -> {
-                    MarketRepository.dsTieuThuong.remove(tt);
-                    MarketRepository.traLaiSapTrong(tt.maSap);
-                    locDanhSach();
-                    Toast.makeText(getContext(), "Đã thu hồi và trả trống sạp " + tt.maSap, Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Hủy", null)
-                .show();
     }
 
     private void chonBoLocTrangThai(int trangThai) {
@@ -363,29 +367,49 @@ public class TieuThuongFragment extends Fragment {
 
     private void locDanhSach() {
         List<TieuThuong> ketQua = new ArrayList<>();
-        int demHoatDong = 0, demTamNgung = 0, demDaKhoa = 0;
+        int demHoatDong = 0, demChuaCoSap = 0, demCoGianKhoa = 0;
 
         for (TieuThuong tt : MarketRepository.dsTieuThuong) {
-            boolean khopKhuVuc = khuVucHienTai.equals("Tất cả") || tt.khuVuc.equals(khuVucHienTai);
+            List<SapHang> dsSapSoHuu = MarketRepository.laySapCuaTieuThuong(tt.maTT);
+
+            boolean khopKhuVuc = khuVucHienTai.equals("Tất cả");
+            StringBuilder chuoiMaSap = new StringBuilder();
+            int soGianKhoa = 0;
+
+            for (SapHang s : dsSapSoHuu) {
+                if (s.khuVuc.equals(khuVucHienTai)) khopKhuVuc = true;
+                chuoiMaSap.append(s.maSap).append(" ");
+                if (s.trangThai == -2) soGianKhoa++;
+            }
+
             boolean khopTuKhoa = tuKhoaHienTai.isEmpty()
                     || boDauTiengViet(tt.hoTen).contains(tuKhoaHienTai)
-                    || boDauTiengViet(tt.maSap).contains(tuKhoaHienTai)
+                    || boDauTiengViet(tt.maTT).contains(tuKhoaHienTai)
+                    || boDauTiengViet(chuoiMaSap.toString()).contains(tuKhoaHienTai)
                     || tt.soDienThoai.contains(tuKhoaHienTai);
 
             if (khopKhuVuc && khopTuKhoa) {
-                if (tt.trangThai == 1) demHoatDong++;
-                else if (tt.trangThai == 0) demTamNgung++;
-                else demDaKhoa++;
+                int nhomTrangThai;
+                if (dsSapSoHuu.isEmpty()) {
+                    demChuaCoSap++;
+                    nhomTrangThai = 0;
+                } else if (soGianKhoa > 0) {
+                    demCoGianKhoa++;
+                    nhomTrangThai = -1;
+                } else {
+                    demHoatDong++;
+                    nhomTrangThai = 1;
+                }
 
-                if (trangThaiLoc == null || tt.trangThai == trangThaiLoc) {
+                if (trangThaiLoc == null || nhomTrangThai == trangThaiLoc) {
                     ketQua.add(tt);
                 }
             }
         }
 
         tvStatHoatDong.setText(demHoatDong + " người");
-        tvStatTamNgung.setText(demTamNgung + " người");
-        tvStatDaKhoa.setText(demDaKhoa + " người");
+        tvStatTamNgung.setText(demChuaCoSap + " người");
+        tvStatDaKhoa.setText(demCoGianKhoa + " người");
 
         tvKhongCoKetQuaTT.setVisibility(ketQua.isEmpty() ? View.VISIBLE : View.GONE);
         rvTieuThuong.setVisibility(ketQua.isEmpty() ? View.GONE : View.VISIBLE);

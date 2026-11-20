@@ -33,12 +33,11 @@ import java.util.regex.Pattern;
 
 public class SoDoChoFragment extends Fragment {
 
-    private RecyclerView rvSoDoSap;
+    private RecyclerView rvSoDoCho;
     private SapHangAdapter adapter;
-    private List<SapHang> tatCaSap = new ArrayList<>();
 
-    private CardView cardStatDaThue, cardStatTrong, cardStatKhoa;
-    private TextView tvStatDaThue, tvStatTrong, tvStatKhoa, tvKhongCoKetQua;
+    private CardView cardStatDaThue, cardStatSapTrong, cardStatTamKhoa;
+    private TextView tvStatDaThue, tvStatSapTrong, tvStatTamKhoa, tvKhongCoKetQua;
     private Integer trangThaiLoc = null;
 
     private String khuVucHienTai = "Tất cả";
@@ -49,29 +48,29 @@ public class SoDoChoFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_so_do_cho, container, false);
 
-        rvSoDoSap = view.findViewById(R.id.rvSoDoSap);
+        MarketRepository.khoiTaoDuLieu();
+
+        rvSoDoCho = view.findViewById(R.id.rvSoDoSap);
         ChipGroup chipGroup = view.findViewById(R.id.chipGroupKhuVuc);
         EditText etTimKiem = view.findViewById(R.id.etTimKiemSap);
         ImageView btnXoaTimKiem = view.findViewById(R.id.btnXoaTimKiem);
         FloatingActionButton fabThemSap = view.findViewById(R.id.fabThemSap);
 
         cardStatDaThue = view.findViewById(R.id.cardStatDaThue);
-        cardStatTrong = view.findViewById(R.id.cardStatTrong);
-        cardStatKhoa = view.findViewById(R.id.cardStatKhoa);
+        cardStatSapTrong = view.findViewById(R.id.cardStatTrong);
+        cardStatTamKhoa = view.findViewById(R.id.cardStatKhoa);
         tvStatDaThue = view.findViewById(R.id.tvStatDaThue);
-        tvStatTrong = view.findViewById(R.id.tvStatTrong);
-        tvStatKhoa = view.findViewById(R.id.tvStatKhoa);
+        tvStatSapTrong = view.findViewById(R.id.tvStatTrong);
+        tvStatTamKhoa = view.findViewById(R.id.tvStatKhoa);
         tvKhongCoKetQua = view.findViewById(R.id.tvKhongCoKetQua);
 
-        taoDuLieuMau();
+        rvSoDoCho.setLayoutManager(new LinearLayoutManager(getContext()));
+        adapter = new SapHangAdapter(MarketRepository.dsSap, this::hienDialogChiTietSap);
+        rvSoDoCho.setAdapter(adapter);
 
-        rvSoDoSap.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new SapHangAdapter(tatCaSap, this::hienDialogChiTietSap);
-        rvSoDoSap.setAdapter(adapter);
-
-        cardStatDaThue.setOnClickListener(v -> chonBoLocTrangThai(1));
-        cardStatTrong.setOnClickListener(v -> chonBoLocTrangThai(0));
-        cardStatKhoa.setOnClickListener(v -> chonBoLocTrangThai(-1));
+        cardStatDaThue.setOnClickListener(v -> chonBoLocTrangThai(2));
+        cardStatSapTrong.setOnClickListener(v -> chonBoLocTrangThai(0));
+        cardStatTamKhoa.setOnClickListener(v -> chonBoLocTrangThai(-2));
 
         chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
             if (checkedIds.isEmpty()) return;
@@ -122,6 +121,12 @@ public class SoDoChoFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        locDanhSach();
+    }
+
     private void hienDialogThemSap() {
         if (getContext() == null) return;
 
@@ -130,60 +135,48 @@ public class SoDoChoFragment extends Fragment {
         int pad = (int) (20 * getResources().getDisplayMetrics().density);
         layout.setPadding(pad, pad / 2, pad, 0);
 
-        TextView tvLabelKhuVuc = new TextView(getContext());
-        tvLabelKhuVuc.setText("Chọn khu vực:");
-        tvLabelKhuVuc.setTextColor(Color.parseColor("#334155"));
-        layout.addView(tvLabelKhuVuc);
+        TextView tvKhuVuc = new TextView(getContext());
+        tvKhuVuc.setText("Chọn khu vực quy hoạch:");
+        tvKhuVuc.setTextColor(Color.parseColor("#334155"));
+        tvKhuVuc.setTextSize(12f);
+        layout.addView(tvKhuVuc);
 
         Spinner spKhuVuc = new Spinner(getContext());
         String[] dsKhuVuc = {"Rau củ", "Thịt cá", "Đồ khô", "Đồ gia dụng"};
-        ArrayAdapter<String> spAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, dsKhuVuc);
-        spKhuVuc.setAdapter(spAdapter);
+        spKhuVuc.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_dropdown_item, dsKhuVuc));
         layout.addView(spKhuVuc);
 
         EditText etMaSap = new EditText(getContext());
-        etMaSap.setHint("Mã sạp (VD: RC-04, TC-04...)");
+        etMaSap.setHint("Mã sạp trống mới (VD: RC-05, TC-04...)");
         etMaSap.setSingleLine(true);
         layout.addView(etMaSap);
 
-        EditText etTenTieuThuong = new EditText(getContext());
-        etTenTieuThuong.setHint("Tên tiểu thương (bỏ trống nếu là sạp trống)");
-        etTenTieuThuong.setSingleLine(true);
-        layout.addView(etTenTieuThuong);
-
         AlertDialog dialog = new AlertDialog.Builder(getContext())
-                .setTitle("Thêm vị trí sạp mới")
+                .setTitle("Tạo vị trí sạp trống mới")
                 .setView(layout)
-                .setPositiveButton("Thêm sạp", null)
+                .setPositiveButton("Tạo sạp", null)
                 .setNegativeButton("Hủy", null)
                 .create();
 
         dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String maSap = etMaSap.getText().toString().trim().toUpperCase();
             String khuVuc = spKhuVuc.getSelectedItem().toString();
-            String tenTieuThuong = etTenTieuThuong.getText().toString().trim();
 
             if (maSap.isEmpty()) {
                 etMaSap.setError("Vui lòng nhập mã sạp");
                 return;
             }
-
-            for (SapHang sap : tatCaSap) {
-                if (sap.maSap.equalsIgnoreCase(maSap)) {
+            for (SapHang s : MarketRepository.dsSap) {
+                if (s.maSap.equalsIgnoreCase(maSap)) {
                     etMaSap.setError("Mã sạp " + maSap + " đã tồn tại");
                     return;
                 }
             }
 
-            int trangThai = tenTieuThuong.isEmpty() ? 0 : 1;
-            if (tenTieuThuong.isEmpty()) {
-                tenTieuThuong = "Trống";
-            }
-
-            tatCaSap.add(0, new SapHang(maSap, khuVuc, tenTieuThuong, trangThai));
+            MarketRepository.dsSap.add(0, new SapHang(maSap, khuVuc, "", "", "", "", "", 0, ""));
             locDanhSach();
-            rvSoDoSap.scrollToPosition(0);
-            Toast.makeText(getContext(), "Đã thêm sạp " + maSap + " vào khu " + khuVuc, Toast.LENGTH_SHORT).show();
+            rvSoDoCho.scrollToPosition(0);
+            Toast.makeText(getContext(), "Đã tạo sạp trống " + maSap + " (" + khuVuc + ")", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         }));
 
@@ -193,64 +186,60 @@ public class SoDoChoFragment extends Fragment {
     private void hienDialogChiTietSap(SapHang sap) {
         if (getContext() == null) return;
 
-        TieuThuong ttDangKy = MarketRepository.timTieuThuongTheoSap(sap.maSap);
+        String tenTrangThai;
+        if (sap.trangThai == 2) tenTrangThai = "Đã duyệt / Đang hoạt động";
+        else if (sap.trangThai == 1) tenTrangThai = "Đang có hồ sơ chờ duyệt";
+        else if (sap.trangThai == -2) tenTrangThai = "Đang tạm khóa";
+        else tenTrangThai = "Sạp trống";
 
         StringBuilder thongTin = new StringBuilder();
-        if (ttDangKy != null) {
-            String trangThaiChuSap;
-            if (ttDangKy.trangThai == 1) {
-                trangThaiChuSap = "Đang hoạt động";
-            } else if (ttDangKy.trangThai == 0) {
-                trangThaiChuSap = "Tạm ngưng";
-            } else {
-                trangThaiChuSap = "Bị khóa tài khoản";
-            }
+        thongTin.append("Khu vực: ").append(sap.khuVuc).append("\n");
+        thongTin.append("Trạng thái: ").append(tenTrangThai).append("\n");
 
-            thongTin.append("Chủ sạp: ").append(ttDangKy.hoTen).append(" (").append(ttDangKy.maTT).append(")\n");
-            thongTin.append("Số điện thoại: ").append(ttDangKy.soDienThoai).append("\n");
-            thongTin.append("Tình trạng tiểu thương: ").append(trangThaiChuSap).append("\n");
-
-            if (ttDangKy.trangThai != 1 && ttDangKy.lyDo != null && !ttDangKy.lyDo.isEmpty()) {
-                thongTin.append("Lý do (tiểu thương): ").append(ttDangKy.lyDo).append("\n");
-            }
+        if (sap.trangThai == 2 || sap.trangThai == 1 || (sap.trangThai == -2 && sap.tenTieuThuong != null && !sap.tenTieuThuong.isEmpty())) {
+            thongTin.append("Tên gian hàng: ").append(sap.tenGianHang).append("\n");
+            thongTin.append("Chủ sạp: ").append(sap.tenTieuThuong).append(" (").append(sap.maTT).append(")\n");
+            thongTin.append("SĐT liên hệ: ").append(sap.soDienThoai);
         } else {
-            thongTin.append("Chủ sạp: Chưa có tiểu thương đăng ký\n");
+            thongTin.append("Chủ sạp: Chưa có tiểu thương đăng ký");
         }
 
-        String tenTrangThaiSap = sap.trangThai == 1 ? "Đã thuê" : (sap.trangThai == 0 ? "Sạp trống" : "Tạm khóa mặt bằng");
-        thongTin.append("\nTrạng thái vị trí sạp: ").append(tenTrangThaiSap);
-
-        if (sap.trangThai == 2 && sap.lyDoKhoa != null && !sap.lyDoKhoa.isEmpty()) {
-            thongTin.append("\nLý do khóa sạp: ").append(sap.lyDoKhoa);
+        if (sap.trangThai == -2 && sap.lyDo != null && !sap.lyDo.isEmpty()) {
+            thongTin.append("\nLý do khóa: ").append(sap.lyDo);
         }
 
-        String nutKhoa = (sap.trangThai == 2) ? "Mở khóa sạp" : "Tạm khóa sạp";
+        String nutKhoa = (sap.trangThai == -2) ? "Mở khóa sạp" : "Khóa sạp";
 
-        AlertDialog dialog = new AlertDialog.Builder(getContext())
-                .setTitle("Vị trí sạp " + sap.maSap + " • " + sap.khuVuc)
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext())
+                .setTitle("Chi tiết Sạp " + sap.maSap)
                 .setMessage(thongTin.toString())
-                .setPositiveButton(nutKhoa, (d, which) -> {
-                    if (sap.trangThai == 2) {
-                        MarketRepository.moKhoaSap(sap.maSap);
-                        locDanhSach();
-                        Toast.makeText(getContext(), "Đã mở khóa sạp " + sap.maSap, Toast.LENGTH_SHORT).show();
-                    } else {
-                        hienDialogNhapLyDoKhoaSap(sap);
-                    }
-                })
-                .setNeutralButton("Xóa sạp", (d, which) -> {
-                    if (ttDangKy != null) {
-                        Toast.makeText(getContext(), "Sạp đang có tiểu thương " + ttDangKy.hoTen + " đăng ký, không thể xóa!", Toast.LENGTH_LONG).show();
-                    } else {
-                        xacNhanXoaSap(sap);
-                    }
-                })
-                .setNegativeButton("Đóng", null)
-                .create();
+                .setNegativeButton("Đóng", null);
 
-        dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setTextColor(Color.parseColor("#DC2626")));
+        if (sap.trangThai != 1) {
+            builder.setPositiveButton(nutKhoa, (dialog, which) -> {
+                if (sap.trangThai == -2) {
+                    MarketRepository.moKhoaSap(sap);
+                    locDanhSach();
+                    Toast.makeText(getContext(), "Đã mở khóa sạp " + sap.maSap, Toast.LENGTH_SHORT).show();
+                } else {
+                    hienDialogNhapLyDoKhoaSap(sap);
+                }
+            });
+        }
+
+        if (sap.trangThai == 0 || sap.trangThai == -1) {
+            builder.setNeutralButton("Xóa sạp", (dialog, which) -> xacNhanXoaSap(sap));
+        }
+
+        AlertDialog dialog = builder.create();
+        dialog.setOnShowListener(d -> {
+            if (dialog.getButton(AlertDialog.BUTTON_NEUTRAL) != null) {
+                dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setTextColor(Color.parseColor("#DC2626"));
+            }
+        });
         dialog.show();
     }
+
     private void hienDialogNhapLyDoKhoaSap(SapHang sap) {
         if (getContext() == null) return;
 
@@ -259,27 +248,27 @@ public class SoDoChoFragment extends Fragment {
         int pad = (int) (20 * getResources().getDisplayMetrics().density);
         layout.setPadding(pad, pad / 2, pad, 0);
 
-        EditText etLyDo = new EditText(getContext());
-        etLyDo.setHint("Nhập lý do tạm khóa mặt bằng sạp...");
-        etLyDo.setSingleLine(true);
-        layout.addView(etLyDo);
+        EditText etLyDoKhoa = new EditText(getContext());
+        etLyDoKhoa.setHint("Nhập lý do khóa sạp / gian hàng...");
+        etLyDoKhoa.setSingleLine(true);
+        layout.addView(etLyDoKhoa);
 
         AlertDialog dialog = new AlertDialog.Builder(getContext())
-                .setTitle("Tạm khóa sạp " + sap.maSap)
+                .setTitle("Khóa Sạp " + sap.maSap)
                 .setView(layout)
                 .setPositiveButton("Xác nhận khóa", null)
                 .setNegativeButton("Hủy", null)
                 .create();
 
         dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            String lyDo = etLyDo.getText().toString().trim();
+            String lyDo = etLyDoKhoa.getText().toString().trim();
             if (lyDo.isEmpty()) {
-                etLyDo.setError("Vui lòng nhập lý do khóa sạp");
+                etLyDoKhoa.setError("Vui lòng nhập lý do khóa");
                 return;
             }
-            MarketRepository.tamKhoaSap(sap.maSap, lyDo);
+            MarketRepository.khoaSap(sap, lyDo);
             locDanhSach();
-            Toast.makeText(getContext(), "Đã tạm khóa sạp " + sap.maSap, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Đã khóa sạp " + sap.maSap, Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         }));
 
@@ -290,15 +279,65 @@ public class SoDoChoFragment extends Fragment {
         if (getContext() == null) return;
 
         new AlertDialog.Builder(getContext())
-                .setTitle("Xác nhận xóa sạp")
-                .setMessage("Bạn có chắc muốn xóa vị trí sạp " + sap.maSap + " (" + sap.khuVuc + ") khỏi sơ đồ chợ?")
+                .setTitle("Xóa vị trí sạp")
+                .setMessage("Xóa vĩnh viễn vị trí Sạp " + sap.maSap + " (" + sap.khuVuc + ") khỏi sơ đồ chợ?")
                 .setPositiveButton("Xóa", (dialog, which) -> {
-                    tatCaSap.remove(sap);
+                    MarketRepository.dsSap.remove(sap);
                     locDanhSach();
-                    Toast.makeText(getContext(), "Đã xóa sạp " + sap.maSap, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Đã xóa Sạp " + sap.maSap, Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Hủy", null)
                 .show();
+    }
+
+    private void chonBoLocTrangThai(int trangThai) {
+        if (trangThaiLoc != null && trangThaiLoc == trangThai) {
+            trangThaiLoc = null;
+        } else {
+            trangThaiLoc = trangThai;
+        }
+        cardStatDaThue.setCardElevation(trangThaiLoc != null && trangThaiLoc == 2 ? 8f : 0f);
+        cardStatSapTrong.setCardElevation(trangThaiLoc != null && trangThaiLoc == 0 ? 8f : 0f);
+        cardStatTamKhoa.setCardElevation(trangThaiLoc != null && trangThaiLoc == -2 ? 8f : 0f);
+
+        cardStatDaThue.setAlpha(trangThaiLoc == null || trangThaiLoc == 2 ? 1.0f : 0.45f);
+        cardStatSapTrong.setAlpha(trangThaiLoc == null || trangThaiLoc == 0 ? 1.0f : 0.45f);
+        cardStatTamKhoa.setAlpha(trangThaiLoc == null || trangThaiLoc == -2 ? 1.0f : 0.45f);
+        locDanhSach();
+    }
+
+    private void locDanhSach() {
+        List<SapHang> ketQua = new ArrayList<>();
+        int demDaThue = 0, demSapTrong = 0, demTamKhoa = 0;
+
+        for (SapHang sap : MarketRepository.dsSap) {
+            int trangThaiHienThi = (sap.trangThai == -1) ? 0 : sap.trangThai;
+
+            boolean khopKhuVuc = khuVucHienTai.equals("Tất cả") || sap.khuVuc.equals(khuVucHienTai);
+            boolean khopTuKhoa = tuKhoaHienTai.isEmpty()
+                    || boDauTiengViet(sap.maSap).contains(tuKhoaHienTai)
+                    || boDauTiengViet(sap.tenTieuThuong).contains(tuKhoaHienTai)
+                    || boDauTiengViet(sap.tenGianHang).contains(tuKhoaHienTai);
+
+            if (khopKhuVuc && khopTuKhoa) {
+                if (trangThaiHienThi == 2) demDaThue++;
+                else if (trangThaiHienThi == 0) demSapTrong++;
+                else if (trangThaiHienThi == -2) demTamKhoa++;
+
+                if (trangThaiLoc == null || trangThaiHienThi == trangThaiLoc) {
+                    ketQua.add(sap);
+                }
+            }
+        }
+
+        tvStatDaThue.setText(demDaThue + " sạp");
+        tvStatSapTrong.setText(demSapTrong + " sạp");
+        tvStatTamKhoa.setText(demTamKhoa + " sạp");
+
+        tvKhongCoKetQua.setVisibility(ketQua.isEmpty() ? View.VISIBLE : View.GONE);
+        rvSoDoCho.setVisibility(ketQua.isEmpty() ? View.GONE : View.VISIBLE);
+
+        adapter.updateData(ketQua);
     }
 
     private void anBanPhim(View view) {
@@ -311,82 +350,12 @@ public class SoDoChoFragment extends Fragment {
     }
 
     private String boDauTiengViet(String text) {
+        if (text == null) return "";
         String temp = Normalizer.normalize(text, Normalizer.Form.NFD);
         Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
         return pattern.matcher(temp).replaceAll("")
                 .replace('đ', 'd')
                 .replace('Đ', 'D')
                 .toLowerCase();
-    }
-
-    private void chonBoLocTrangThai(int trangThai) {
-        if (trangThaiLoc != null && trangThaiLoc == trangThai) {
-            trangThaiLoc = null;
-        } else {
-            trangThaiLoc = trangThai;
-        }
-        capNhatGiaoDienTheThongKe();
-        locDanhSach();
-    }
-
-    private void capNhatGiaoDienTheThongKe() {
-        cardStatDaThue.setCardElevation(trangThaiLoc != null && trangThaiLoc == 1 ? 8f : 0f);
-        cardStatTrong.setCardElevation(trangThaiLoc != null && trangThaiLoc == 0 ? 8f : 0f);
-        cardStatKhoa.setCardElevation(trangThaiLoc != null && trangThaiLoc == -1 ? 8f : 0f);
-
-        cardStatDaThue.setAlpha(trangThaiLoc == null || trangThaiLoc == 1 ? 1.0f : 0.45f);
-        cardStatTrong.setAlpha(trangThaiLoc == null || trangThaiLoc == 0 ? 1.0f : 0.45f);
-        cardStatKhoa.setAlpha(trangThaiLoc == null || trangThaiLoc == -1 ? 1.0f : 0.45f);
-    }
-
-    private void locDanhSach() {
-        List<SapHang> ketQua = new ArrayList<>();
-        int demDaThue = 0, demTrong = 0, demKhoa = 0;
-
-        for (SapHang sap : tatCaSap) {
-            boolean khopKhuVuc = khuVucHienTai.equals("Tất cả") || sap.khuVuc.equals(khuVucHienTai);
-            String maSapKhongDau = boDauTiengViet(sap.maSap);
-            String tenKhongDau = boDauTiengViet(sap.tenTieuThuong);
-            String khuVucKhongDau = boDauTiengViet(sap.khuVuc);
-
-            boolean khopTuKhoa = tuKhoaHienTai.isEmpty()
-                    || maSapKhongDau.contains(tuKhoaHienTai)
-                    || tenKhongDau.contains(tuKhoaHienTai)
-                    || khuVucKhongDau.contains(tuKhoaHienTai);
-
-            if (khopKhuVuc && khopTuKhoa) {
-                if (sap.trangThai == 1) demDaThue++;
-                else if (sap.trangThai == 0) demTrong++;
-                else demKhoa++;
-
-                if (trangThaiLoc == null || sap.trangThai == trangThaiLoc) {
-                    ketQua.add(sap);
-                }
-            }
-        }
-
-        tvStatDaThue.setText(demDaThue + " sạp");
-        tvStatTrong.setText(demTrong + " sạp");
-        tvStatKhoa.setText(demKhoa + " sạp");
-
-        tvKhongCoKetQua.setVisibility(ketQua.isEmpty() ? View.VISIBLE : View.GONE);
-        rvSoDoSap.setVisibility(ketQua.isEmpty() ? View.GONE : View.VISIBLE);
-
-        adapter.updateData(ketQua);
-    }
-
-    private void taoDuLieuMau() {
-        tatCaSap.clear();
-        tatCaSap.add(new SapHang("RC-01", "Rau củ", "Cô Tư Rau", 1));
-        tatCaSap.add(new SapHang("RC-02", "Rau củ", "Chị Lan Củ", 1));
-        tatCaSap.add(new SapHang("RC-03", "Rau củ", "Trống", 0));
-        tatCaSap.add(new SapHang("TC-01", "Thịt cá", "Anh Ba Thịt", 1));
-        tatCaSap.add(new SapHang("TC-02", "Thịt cá", "Chú Sáu Cá", -1));
-        tatCaSap.add(new SapHang("TC-03", "Thịt cá", "Trống", 0));
-        tatCaSap.add(new SapHang("DK-01", "Đồ khô", "Bà Năm Mắm", 1));
-        tatCaSap.add(new SapHang("DK-02", "Đồ khô", "Trống", 0));
-        tatCaSap.add(new SapHang("GD-01", "Đồ gia dụng", "Chú Tám Nhựa", 1));
-        tatCaSap.add(new SapHang("GD-02", "Đồ gia dụng", "Cô Hoa Nồi", 1));
-        tatCaSap.add(new SapHang("GD-03", "Đồ gia dụng", "Trống", 0));
     }
 }
